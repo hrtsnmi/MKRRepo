@@ -5,11 +5,12 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "Interfaces/WalkSpeedUpdateInterface.h"
 #include "SHCharacter.generated.h"
 
 
 UCLASS(config=Game)
-class ASHCharacter : public ACharacter
+class ASHCharacter : public ACharacter, public IWalkSpeedUpdateInterface
 {
 	GENERATED_BODY()
 
