@@ -49,6 +49,15 @@ ASHCharacter::ASHCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+	//Walk Jog speed info
+	FPlayerMovementInfo SpeedData;
+	WalkJogSpeedData.Add(ESpeedStates::Joging, SpeedData);
+	
+	SpeedData.MaxWalkSpeed = 200.f;
+	SpeedData.MaxAcceleration = 400.f;
+	SpeedData.BrakingDeceleration = 400.f;
+	WalkJogSpeedData.Add(ESpeedStates::Walking, SpeedData);
 }
 
 void ASHCharacter::BeginPlay()
@@ -64,6 +73,8 @@ void ASHCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	WalkJogSwitcher_Implementation(false);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -83,6 +94,8 @@ void ASHCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASHCharacter::Look);
+		EnhancedInputComponent->BindAction(WalkJogSwitcherAction, ETriggerEvent::Started, this, &ASHCharacter::WalkJogSwitcher_Implementation);
+		EnhancedInputComponent->BindAction(WalkJogSwitcherAction, ETriggerEvent::Completed, this, &ASHCharacter::WalkJogSwitcher_Implementation);
 
 	}
 
@@ -124,6 +137,37 @@ void ASHCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
+void ASHCharacter::WalkJogSwitcher_Implementation(const FInputActionValue& Value)
+{
+	switch (CharacterSpeedState)
+	{
+	case ESpeedStates::Walking:
+		CharacterSpeedState = ESpeedStates::Joging;
+		break;
+	case ESpeedStates::Joging:
+		CharacterSpeedState = ESpeedStates::Walking;
+		break;
+	default:
+		break;
+	}
 
+	FPlayerMovementInfo* SpeedDataRef = WalkJogSpeedData.Find(CharacterSpeedState);
+	if (!SpeedDataRef) return;
+
+	UCharacterMovementComponent* CharacterMovementRef = GetCharacterMovement();
+	if (!CharacterMovementRef) return;
+
+	CharacterMovementRef->MaxWalkSpeed = SpeedDataRef->MaxWalkSpeed;
+	CharacterMovementRef->MaxAcceleration = SpeedDataRef->MaxAcceleration;
+	CharacterMovementRef->BrakingFrictionFactor = SpeedDataRef->BrakingFrictionFactor;
+	CharacterMovementRef->BrakingDecelerationWalking = SpeedDataRef->BrakingDeceleration;
+	CharacterMovementRef->BrakingFriction = SpeedDataRef->BrakingFriction;
+	CharacterMovementRef->bUseSeparateBrakingFriction = SpeedDataRef->bUseSeparateBrakingFriction;
+}
+
+ESpeedStates ASHCharacter::ReciveGaitData_Implementation()
+{
+	return CharacterSpeedState;
+}
 
 
