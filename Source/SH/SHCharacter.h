@@ -10,7 +10,8 @@
 
 
 UCLASS(config=Game)
-class ASHCharacter : public ACharacter, public IWalkSpeedUpdateInterface
+class ASHCharacter : public ACharacter,
+	public IWalkJogSwitcherInterface
 {
 	GENERATED_BODY()
 
@@ -38,6 +39,9 @@ class ASHCharacter : public ACharacter, public IWalkSpeedUpdateInterface
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* WalkJogSwitcherAction;
+
 public:
 	ASHCharacter();
 	
@@ -49,7 +53,13 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-			
+
+protected:
+	void WalkJogSwitcher_Implementation(const FInputActionValue& Value);
+	UPROPERTY(EditDefaultsOnly, Category = "Player Movement|Info") TMap<ESpeedStates, FPlayerMovementInfo> WalkJogSpeedData;
+	UPROPERTY(EditAnywhere, Category = "Player Movement|Info") ESpeedStates CharacterSpeedState { ESpeedStates::Joging };
+public:
+	ESpeedStates ReciveGaitData_Implementation();
 
 protected:
 	// APawn interface
