@@ -5,7 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
-#include "Interfaces/WalkSpeedUpdateInterface.h"
+//#include "Interfaces/WalkSpeedUpdateInterface.h"
+#include "Interfaces/WalkJogSwitcherInterface.h"
 #include "SHCharacter.generated.h"
 
 

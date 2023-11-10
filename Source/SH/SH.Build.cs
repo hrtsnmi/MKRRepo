@@ -16,5 +16,6 @@ public class SH : ModuleRules
         PublicDependencyModuleNames.Add("GameplayTasks");
 
         PublicDependencyModuleNames.Add("NavigationSystem");
+        PublicDependencyModuleNames.Add("Niagara"); 
     }
 }
