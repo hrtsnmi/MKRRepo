@@ -139,22 +139,37 @@ void ASHCharacter::Look(const FInputActionValue& Value)
 
 void ASHCharacter::WalkJogSwitcher_Implementation(const FInputActionValue& Value)
 {
+	ESpeedStates NewState = CharacterSpeedState;
 	switch (CharacterSpeedState)
 	{
 	case ESpeedStates::Walking:
-		CharacterSpeedState = ESpeedStates::Joging;
+		NewState = ESpeedStates::Joging;
 		break;
 	case ESpeedStates::Joging:
-		CharacterSpeedState = ESpeedStates::Walking;
+		NewState = ESpeedStates::Walking;
 		break;
 	default:
 		break;
 	}
 
-	FPlayerMovementInfo* SpeedDataRef = WalkJogSpeedData.Find(CharacterSpeedState);
+	SetGaitData_Implementation(NewState);
+}
+
+void ASHCharacter::SetGaitData_Implementation(ESpeedStates State)
+{
+	CharacterSpeedState = State;
+	UpdateMovementDependsOnState(WalkJogSpeedData.Find(CharacterSpeedState), GetCharacterMovement());
+}
+
+ESpeedStates ASHCharacter::ReciveGaitData_Implementation()
+{
+	return CharacterSpeedState;
+}
+
+void UpdateMovementDependsOnState(FPlayerMovementInfo* SpeedDataRef, UCharacterMovementComponent* CharacterMovementRef)
+{
 	if (!SpeedDataRef) return;
 
-	UCharacterMovementComponent* CharacterMovementRef = GetCharacterMovement();
 	if (!CharacterMovementRef) return;
 
 	CharacterMovementRef->MaxWalkSpeed = SpeedDataRef->MaxWalkSpeed;
@@ -164,10 +179,3 @@ void ASHCharacter::WalkJogSwitcher_Implementation(const FInputActionValue& Value
 	CharacterMovementRef->BrakingFriction = SpeedDataRef->BrakingFriction;
 	CharacterMovementRef->bUseSeparateBrakingFriction = SpeedDataRef->bUseSeparateBrakingFriction;
 }
-
-ESpeedStates ASHCharacter::ReciveGaitData_Implementation()
-{
-	return CharacterSpeedState;
-}
-
-

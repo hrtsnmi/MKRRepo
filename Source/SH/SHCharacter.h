@@ -10,6 +10,9 @@
 #include "SHCharacter.generated.h"
 
 
+
+void UpdateMovementDependsOnState(FPlayerMovementInfo* SpeedDataRef, UCharacterMovementComponent* CharacterMovementRef);
+
 UCLASS(config=Game)
 class ASHCharacter : public ACharacter,
 	public IWalkJogSwitcherInterface
@@ -57,6 +60,7 @@ protected:
 
 protected:
 	void WalkJogSwitcher_Implementation(const FInputActionValue& Value);
+	void SetGaitData_Implementation(ESpeedStates State);
 	UPROPERTY(EditDefaultsOnly, Category = "Player Movement|Info") TMap<ESpeedStates, FPlayerMovementInfo> WalkJogSpeedData;
 	UPROPERTY(EditAnywhere, Category = "Player Movement|Info") ESpeedStates CharacterSpeedState { ESpeedStates::Joging };
 public:
