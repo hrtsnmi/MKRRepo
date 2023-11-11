@@ -5,16 +5,27 @@
 #include "CoreMinimal.h"
 #include "../SHCharacter.h"
 #include "Components/TimelineComponent.h"
+#include "Kismet/GameplayStaticsTypes.h"
+#include "Components/SplineMeshComponent.h"
 #include "TsunaCharacter.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAddSplineMeshAtIndexSignature, int32, index);
 
 /**
  * 
  */
+
+void ClearSpline(TArray<USplineMeshComponent*>& SplineMeshes, class USplineComponent* KnifeSpline);
+
+
 UCLASS()
 class SH_API ATsunaCharacter : public ASHCharacter
 {
 	GENERATED_BODY()
-	
+
+public:
+	ATsunaCharacter();
+
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* ThrowAction;
@@ -32,6 +43,22 @@ private:
 		float ThrowRate{ 1.f };
 
 	bool bWasThrown{ false };
+
+	UPROPERTY() FVector ThownLocation { FVector(84.92f, -15.0f, 41.48f) };
+	UPROPERTY() FTransform ThownTransform;
+	
+	
+	UPROPERTY() FPredictProjectilePathParams PredictParams;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Throw|Data", meta = (AllowPrivateAccess = "true"))
+		USplineComponent * KnifeSpline;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Throw|Data", meta = (AllowPrivateAccess = "true"))
+		class UStaticMeshComponent* EndSpline;
+
+	UPROPERTY(BlueprintAssignable)
+		FAddSplineMeshAtIndexSignature OnAddSplineMeshAtIndex;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Throw|Data", meta = (AllowPrivateAccess = "true"))
+		TArray<USplineMeshComponent*> SplineMeshes;
 
 	//Spawn Data
 private:
@@ -75,9 +102,6 @@ private:
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-public:
-	ATsunaCharacter();
 
 	virtual void BeginPlay() override;
 

@@ -60,4 +60,10 @@ public:
 
 	void ActivateParticle(bool bActivate = false);
 
+	UFUNCTION()
+	float& AddOwnerSpeed();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ExposeOnSpawn = true), Category = "Throw|Speed")
+		float StartSpeed{ 1000.f };
+
 };

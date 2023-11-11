@@ -12,6 +12,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "../QuantumtKnife.h"
 #include "NiagaraComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "DrawDebugHelpers.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Components/SplineComponent.h"
 
 ATsunaCharacter::ATsunaCharacter()
 {
@@ -25,12 +29,27 @@ ATsunaCharacter::ATsunaCharacter()
 	RectLightComp->SetupAttachment(KnifeLocation);
 	Knife->SetupAttachment(KnifeLocation);
 	RectLightComp->SetVisibility(false);
-
 	NS_LeakParticles->SetupAttachment(GetMesh());
+
+	KnifeSpline = CreateDefaultSubobject<USplineComponent>(TEXT("Knife Spline"));;
+	KnifeSpline->SetupAttachment(RootComponent);
+
+	EndSpline = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("End Spline Mesh"));;
+	EndSpline->SetupAttachment(RootComponent);
+	EndSpline->SetVisibility(false);
 
 	SpawnTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("Color Timeline"));
 	ProgressFunction.BindUFunction(this, FName("HandleSpawnProgress"));
 	SpawnTimelineFinishedEvent.BindUFunction(this, FName("SpawnTimelineFinishedFunction"));
+
+
+	//Predict path
+	PredictParams.bTraceWithCollision = true;
+	PredictParams.ProjectileRadius = 5.f;
+	PredictParams.bTraceWithChannel = true;
+	PredictParams.TraceChannel = ECollisionChannel::ECC_Visibility;
+	PredictParams.ActorsToIgnore = { this };
+	PredictParams.DrawDebugType = EDrawDebugTrace::None;
 }
 
 void ATsunaCharacter::BeginPlay()
@@ -66,6 +85,8 @@ void ATsunaCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 void ATsunaCharacter::Throw(const FInputActionValue& Value)
 {
+	ClearSpline(SplineMeshes, KnifeSpline);
+
 	if (SpawnTimeline->IsActive()) return;
 
 	if (bWasThrown)
@@ -75,38 +96,41 @@ void ATsunaCharacter::Throw(const FInputActionValue& Value)
 		//Light
 		NS_LeakParticles->Activate();
 
-
 		//Starting the timeline...
 		SpawnTimeline->PlayFromStart();
-
 	}
 	else
 	{
+		EndSpline->SetVisibility(false);
+
 		if (!ThrowMontage) return;
 
 		if (GetWorldTimerManager().IsTimerActive(ThrowMontageTimer)) return;
 
-		float throwingTime = PlayAnimMontage(ThrowMontage, ThrowRate);
+		float throwingTime = PlayAnimMontage(ThrowMontage, ThrowRate) * 0.45f;
 
 		GetWorldTimerManager().SetTimer(ThrowMontageTimer, FTimerDelegate::CreateLambda([this]
 			{
 				Knife->SetVisibility(false);
 
-				FTransform ProjectileTransform;
-				ProjectileTransform.SetLocation(KnifeLocation->GetComponentLocation());
-				
-				FRotator NewRotator = GetActorRotation();
-				NewRotator.Roll = GetFollowCamera()->GetComponentRotation().Roll;
-				ProjectileTransform.SetRotation(NewRotator.Quaternion());
-
-				//ProjectileTransform.SetScale3D(FVector(ProjectileScale));
-			
 				if (!KnifeProj) return;
-				ThownProjectile = GetWorld()->SpawnActorDeferred<AQuantumtKnife>
-					(KnifeProj, ProjectileTransform, this);
-				UGameplayStatics::FinishSpawningActor(ThownProjectile, ProjectileTransform);
 
-			}), throwingTime * 0.2f, false);
+				const float CurrCharacterSpeed =
+					FVector::DotProduct(GetActorForwardVector(), GetVelocity()) < 0 ?
+					(- GetVelocity().Size()) :
+					(GetVelocity().Size());
+
+				ThownProjectile = GetWorld()->SpawnActorDeferred<AQuantumtKnife>
+					(KnifeProj, ThownTransform, this);
+				if (ThownProjectile)
+				{
+					ThownProjectile->AddOwnerSpeed() = CurrCharacterSpeed + ThownProjectile->StartSpeed;
+					ThownProjectile->FinishSpawning(ThownTransform);
+				}
+				//ThownLocation = KnifeLocation->GetComponentLocation();
+				//ThownLocation = UKismetMathLibrary::InverseTransformLocation(GetActorTransform(), KnifeLocation->GetComponentLocation());
+
+			}), throwingTime, false);
 
 		bWasThrown = true;
 	}
@@ -114,6 +138,48 @@ void ATsunaCharacter::Throw(const FInputActionValue& Value)
 
 void ATsunaCharacter::ShowParticlePath(const FInputActionValue& Value)
 {
+	if (SpawnTimeline->IsActive()) return;
+
+	if (bWasThrown) return;
+
+	const FVector WorldSpawnLocation = UKismetMathLibrary::TransformLocation(GetActorTransform(), ThownLocation);
+	const FVector WhereCharacterLooks = FRotator(GetFollowCamera()->GetComponentRotation().Pitch, GetActorRotation().Yaw, GetActorRotation().Roll).Vector();
+
+	//DrawDebugDirectionalArrow(GetWorld(), WorldSpawnLocation, WorldSpawnLocation + WhereCharacterLooks * 500.f, 50.f, FColor::Red);// false, 5.f);
+	//DrawDebugSphere(GetWorld(), WorldSpawnLocation, 10.f, 10, FColor::Orange);
+
+	ThownTransform.SetLocation(WorldSpawnLocation);
+	ThownTransform.SetRotation(FRotator(GetFollowCamera()->GetComponentRotation().Pitch, GetActorRotation().Yaw, GetActorRotation().Roll).Quaternion());
+
+	FPredictProjectilePathResult PredictResult;
+
+	PredictParams.StartLocation = WorldSpawnLocation;
+	PredictParams.LaunchVelocity = 1000.f * WhereCharacterLooks + GetVelocity();
+	
+	ClearSpline(SplineMeshes, KnifeSpline);
+	SplineMeshes.Reserve(PredictResult.PathData.Num());
+	
+
+	bool CanPredictKnifePagh = UGameplayStatics::PredictProjectilePath(GetWorld(), PredictParams, PredictResult);
+
+	if (OnAddSplineMeshAtIndex.IsBound())
+	{
+		for (int32 i = 0; i < PredictResult.PathData.Num(); ++i)
+		{
+			KnifeSpline->AddSplinePoint(PredictResult.PathData[i].Location, ESplineCoordinateSpace::Local);
+		}
+
+		for (int32 i = 0; i < PredictResult.PathData.Num() - 1; ++i)
+		{
+			//ExecuteDelegate for Add mesh in Blueprint
+
+			OnAddSplineMeshAtIndex.Broadcast(i);
+		}
+	}
+
+	KnifeSpline->SetSplinePointType(PredictResult.PathData.Num() - 1, ESplinePointType::CurveClamped);
+	EndSpline->SetWorldLocation(PredictResult.PathData.Last().Location);
+	EndSpline->SetVisibility(true);
 }
 
 void ATsunaCharacter::SpawnKnifeBack(const FInputActionValue& Value)
@@ -142,14 +208,9 @@ void ATsunaCharacter::SpawnKnifeBack(const FInputActionValue& Value)
 //To Proccces Spawn
 void ATsunaCharacter::HandleSpawnProgress(float Value)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("HandleSpawnProgress: %f"), Value);
 	//Dissapearing
 	GetMesh()->SetScalarParameterValueOnMaterials(ParamaterName, Value);
 	NS_LeakParticles->SetNiagaraVariableFloat(ParamaterName.ToString(), Value);
-
-	/*UseTimeLineParticle(ParamaterName.ToString(), Value);
-
-	ActivateParticle*/
 }
 
 
@@ -184,4 +245,18 @@ void ATsunaCharacter::SpawnTimelineFinishedFunction()
 			}), 3.3f, false);
 	}
 	
+}
+
+//Clear Spline Points
+void ClearSpline(TArray<USplineMeshComponent*>& SplineMeshes, USplineComponent* KnifeSpline)
+{
+	if (SplineMeshes.Num() > 0)
+	{
+		for (USplineMeshComponent* SplineMeshComponent : SplineMeshes)
+		{
+			SplineMeshComponent->DestroyComponent();
+		}
+		SplineMeshes.Empty();
+	}
+	KnifeSpline->ClearSplinePoints();
 }

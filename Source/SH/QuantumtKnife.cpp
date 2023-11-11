@@ -51,6 +51,8 @@ void AQuantumtKnife::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	
+	SetActorRotation(GetVelocity().Rotation());
 }
 
 void AQuantumtKnife::UseTimeLineParticle(const FString& ParamaterName, float Value)
@@ -68,5 +70,10 @@ void AQuantumtKnife::ActivateParticle(bool bActivate)
 	{
 		NS_LeakParticlesProj->Deactivate();
 	}
+}
+
+float& AQuantumtKnife::AddOwnerSpeed()
+{
+	return ProjectileMovementComp->InitialSpeed;
 }
 
