@@ -61,6 +61,7 @@ protected:
 protected:
 	void WalkJogSwitcher_Implementation(const FInputActionValue& Value);
 	void SetGaitData_Implementation(ESpeedStates State);
+	virtual FPlayerMovementInfo* GetPlayerMovementInfo();
 	UPROPERTY(EditDefaultsOnly, Category = "Player Movement|Info") TMap<ESpeedStates, FPlayerMovementInfo> WalkJogSpeedData;
 	UPROPERTY(EditAnywhere, Category = "Player Movement|Info") ESpeedStates CharacterSpeedState { ESpeedStates::Joging };
 public:

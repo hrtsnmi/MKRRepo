@@ -158,7 +158,12 @@ void ASHCharacter::WalkJogSwitcher_Implementation(const FInputActionValue& Value
 void ASHCharacter::SetGaitData_Implementation(ESpeedStates State)
 {
 	CharacterSpeedState = State;
-	UpdateMovementDependsOnState(WalkJogSpeedData.Find(CharacterSpeedState), GetCharacterMovement());
+	UpdateMovementDependsOnState(GetPlayerMovementInfo(), GetCharacterMovement());
+}
+
+FPlayerMovementInfo* ASHCharacter::GetPlayerMovementInfo()
+{
+	return WalkJogSpeedData.Find(CharacterSpeedState);
 }
 
 ESpeedStates ASHCharacter::ReciveGaitData_Implementation()
@@ -168,14 +173,13 @@ ESpeedStates ASHCharacter::ReciveGaitData_Implementation()
 
 void UpdateMovementDependsOnState(FPlayerMovementInfo* SpeedDataRef, UCharacterMovementComponent* CharacterMovementRef)
 {
-	if (!SpeedDataRef) return;
-
-	if (!CharacterMovementRef) return;
-
-	CharacterMovementRef->MaxWalkSpeed = SpeedDataRef->MaxWalkSpeed;
-	CharacterMovementRef->MaxAcceleration = SpeedDataRef->MaxAcceleration;
-	CharacterMovementRef->BrakingFrictionFactor = SpeedDataRef->BrakingFrictionFactor;
-	CharacterMovementRef->BrakingDecelerationWalking = SpeedDataRef->BrakingDeceleration;
-	CharacterMovementRef->BrakingFriction = SpeedDataRef->BrakingFriction;
-	CharacterMovementRef->bUseSeparateBrakingFriction = SpeedDataRef->bUseSeparateBrakingFriction;
+	if (CharacterMovementRef && SpeedDataRef)
+	{
+		CharacterMovementRef->MaxWalkSpeed = SpeedDataRef->MaxWalkSpeed;
+		CharacterMovementRef->MaxAcceleration = SpeedDataRef->MaxAcceleration;
+		CharacterMovementRef->BrakingFrictionFactor = SpeedDataRef->BrakingFrictionFactor;
+		CharacterMovementRef->BrakingDecelerationWalking = SpeedDataRef->BrakingDeceleration;
+		CharacterMovementRef->BrakingFriction = SpeedDataRef->BrakingFriction;
+		CharacterMovementRef->bUseSeparateBrakingFriction = SpeedDataRef->bUseSeparateBrakingFriction;
+	}
 }
