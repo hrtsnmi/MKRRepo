@@ -17,6 +17,13 @@ ACrouchCharacter::ACrouchCharacter()
 	
 }
 
+void ACrouchCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	GoToCoverWhileHit();
+}
+
 void ACrouchCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -47,6 +54,7 @@ void ACrouchCharacter::BeginPlay()
 
 	BoxComp->OnComponentBeginOverlap.AddDynamic(this, &ACrouchCharacter::BoxComponentBeginOverlap);
 	BoxComp->OnComponentEndOverlap.AddDynamic(this, &ACrouchCharacter::BoxComponentEndOverlap);
+
 }
 
 void ACrouchCharacter::CrouchSwitcher_Implementation(const FInputActionValue& Value)
@@ -66,6 +74,7 @@ void ACrouchCharacter::CrouchSwitcher_Implementation(const FInputActionValue& Va
 		break;
 	}
 	SetCrouchData_Implementation(NewState);
+	
 }
 
 void ACrouchCharacter::SetCrouchData_Implementation(ECrouchStates State)
@@ -90,7 +99,10 @@ FPlayerMovementInfo* ACrouchCharacter::GetPlayerMovementInfo()
 void ACrouchCharacter::BoxComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	//BoxComp->OnComponentEndOverlap.AddDynamic(this, &ACrouchCharacter::BoxComponentEndOverlap);
-	if (!OtherActor || this == OtherActor) return;
+	if (!OtherActor ||
+		this == OtherActor ||
+		!OtherActor->ActorHasTag(SeatchTag))
+		return;
 	
 	UWorld* world = GetWorld();
 	
@@ -103,7 +115,9 @@ void ACrouchCharacter::BoxComponentBeginOverlap(UPrimitiveComponent* OverlappedC
 		{ FindCollision}, QueryParams);
 
 	FVector Normal = HitCover.Normal;
-	FVector DistanceToCover = Normal * HitCover.Distance;
+	FVector DistanceToCover = Normal * FVector::DotProduct(Normal, HitCover.ImpactPoint - GetActorLocation());
+
+	DrawDebugLine(world, GetActorLocation(), GetActorLocation() + DistanceToCover, FColor::Red, false, 5.f);
 
 	//DrawDebugSphere(world, HitCover.ImpactPoint, 10.f, 10, FColor::Green, false, 5.f);
 	DrawDebugDirectionalArrow(world, HitCover.ImpactPoint,
@@ -126,17 +140,17 @@ void ACrouchCharacter::BoxComponentBeginOverlap(UPrimitiveComponent* OverlappedC
 	float horizonStep = GetCapsuleComponent()->GetScaledCapsuleRadius() * 0.25f;
 	bool bIsNotCoverEndRight = true;
 	bool bIsNotCoverEndLeft = true;
-	FVector Right = FVector::CrossProduct(Normal, GetActorUpVector());
+	Right = FVector::CrossProduct(Normal, GetActorUpVector());
 	DrawDebugLine(world, GetActorLocation(), GetActorLocation() + Right * 100.f, FColor::Yellow, false, 5.f);
 	Right.Normalize();
 	FVector EndRight;
 	FVector EndLeft;
-	FVector LeftEndPoint, RightEndPoint;
+	
 
 	for (int32 i = 0; bIsNotCoverEndRight || bIsNotCoverEndLeft; ++i)
 	{
-		EndRight = GetActorLocation() - DistanceToCover + Right * horizonStep * i;
-		EndLeft = GetActorLocation() - DistanceToCover - Right * horizonStep * i;
+		EndRight = GetActorLocation() + DistanceToCover * 2.f + Right * horizonStep * i;
+		EndLeft = GetActorLocation() + DistanceToCover * 2.f - Right * horizonStep * i;
 
 		if(bIsNotCoverEndRight)
 		{
@@ -170,22 +184,39 @@ void ACrouchCharacter::BoxComponentBeginOverlap(UPrimitiveComponent* OverlappedC
 	}
 
 	bCanHide = true;
+	AttachLocation = DistanceToCover;
 }
 
 void ACrouchCharacter::BoxComponentEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (!OtherActor || this == OtherActor) return;
+	if (!OtherActor ||
+		this == OtherActor ||
+		!OtherActor->ActorHasTag(SeatchTag))
+		return;
 
 	bCanHide = false;
 }
 
+void ACrouchCharacter::GoToCoverWhileHit()
+{
+	if (bNeedToReachCover)
+	{
+		// add movement 
+		AddMovementInput(AttachLocation - GetActorLocation());
+	}
+}
+
 void ACrouchCharacter::HideSwitcher_Implementation(const FInputActionValue& Value)
 {
-	if (!bCanHide && CharacterCrouchState != ECrouchStates::Crouch)
+	if (!bCanHide)
 	{
 		return;
 	}
-	
+	if (CharacterCrouchState != ECrouchStates::Crouch)
+	{
+		return;
+	}
+
 	switch (HideState)
 	{
 	case EHideStates::Hide:
@@ -193,11 +224,29 @@ void ACrouchCharacter::HideSwitcher_Implementation(const FInputActionValue& Valu
 		BoxComp->OnComponentBeginOverlap.AddDynamic(this, &ACrouchCharacter::BoxComponentBeginOverlap);
 		BoxComp->OnComponentEndOverlap.AddDynamic(this, &ACrouchCharacter::BoxComponentEndOverlap);
 		bCanHide = false;
+		bNeedToReachCover = false;
+		if (Box1)
+		{
+			Box1->Destroy();
+		}
+		if (Box2)
+		{
+			Box2->Destroy();
+		}
+		GetCapsuleComponent()->OnComponentHit.RemoveAll(this);
 		break;
 	case EHideStates::Visible:
 		HideState = EHideStates::Hide;
 		BoxComp->OnComponentBeginOverlap.RemoveAll(this);
 		BoxComp->OnComponentEndOverlap.RemoveAll(this);
+		bNeedToReachCover = true;
+		if (Border)
+		{
+			Box1 = GetWorld()->SpawnActor<AActor>(Border, RightEndPoint - AttachLocation,Right.Rotation());
+			Box2 = GetWorld()->SpawnActor<AActor>(Border, LeftEndPoint - AttachLocation, Right.Rotation());
+		}
+		AttachLocation += GetActorLocation();
+		GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ACrouchCharacter::OnCapsuleHit);
 		break;
 	default:
 		break;
@@ -217,4 +266,44 @@ EHideStates ACrouchCharacter::ReciveHideData_Implementation()
 ECrouchStates ACrouchCharacter::ReciveCrouchData_Implementation()
 {
 	return CharacterCrouchState;
+}
+
+void ACrouchCharacter::Move(const FInputActionValue& Value)
+{
+	if (HideState == EHideStates::Hide)
+	{
+		const FVector2D MovementVector = Value.Get<FVector2D>();
+
+		if (Controller != nullptr)
+		{
+			// find out which way is forward
+			const FRotator Rotation = Controller->GetControlRotation();
+			const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+			// get forward vector
+			const FVector ForwardDirection = FVector::DotProduct(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X), Right) * Right;
+
+			// get right vector 
+			const FVector RightDirection = FVector::DotProduct(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y), Right) * Right;
+
+			// add movement 
+			AddMovementInput(ForwardDirection, MovementVector.Y);
+			AddMovementInput(RightDirection, MovementVector.X);
+		}
+	}
+	else
+	{
+		Super::Move(Value);
+	}
+}
+
+
+void ACrouchCharacter::OnCapsuleHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (!OtherActor ||
+		this == OtherActor ||
+		!OtherActor->ActorHasTag(SeatchTag))
+		return;
+
+	bNeedToReachCover = false;
 }

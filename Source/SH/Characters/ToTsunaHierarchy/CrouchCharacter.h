@@ -11,6 +11,7 @@
 /**
  * 
  */
+
 UCLASS()
 class SH_API ACrouchCharacter : public AThrowCharacter,
 	public ICrouchInterface,
@@ -31,11 +32,13 @@ private:
 public:
 	ACrouchCharacter();
 
+	virtual void Tick(float DeltaSeconds) override;
+
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	virtual void BeginPlay();
+	virtual void BeginPlay() override;
 
 protected:
 	void CrouchSwitcher_Implementation(const FInputActionValue& Value);
@@ -51,10 +54,33 @@ protected:
 	UFUNCTION()
 		void BoxComponentEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	UPROPERTY() FVector LeftEndPoint { FVector::UpVector };
+	UPROPERTY() FVector RightEndPoint { FVector::UpVector };
+	UPROPERTY() FVector Right;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player Movement|Hide") FVector AttachLocation;
 
 	bool bCanHide{ false };
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player Movement|Info")
 	EHideStates HideState{EHideStates::Visible };
+	bool bNeedToReachCover{ false };
+
+	void GoToCoverWhileHit();
+
+	UFUNCTION()
+		void OnCapsuleHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UPROPERTY() AActor* Box1;
+	UPROPERTY() AActor* Box2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player Movement|Hide")
+		TSubclassOf<AActor> Border;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player Movement|Hide") FName SeatchTag { "Cover" };
+
+protected:
+
+	/** Called for movement input */
+	virtual void Move(const FInputActionValue& Value) override;
 
 protected:
 	void HideSwitcher_Implementation(const FInputActionValue& Value);
