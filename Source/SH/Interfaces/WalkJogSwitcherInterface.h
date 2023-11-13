@@ -26,7 +26,7 @@ public:
 		float BrakingFrictionFactor{ 1.f };
 
 	UPROPERTY(BlueprintReadWrite, Category = "Player Movement|Info")
-		bool bUseSeparateBrakingFriction{ false };
+		bool bUseSeparateBrakingFriction{ true };
 
 	UPROPERTY(BlueprintReadWrite, Category = "Player Movement|Info")
 		float BrakingFriction{ 0.f };

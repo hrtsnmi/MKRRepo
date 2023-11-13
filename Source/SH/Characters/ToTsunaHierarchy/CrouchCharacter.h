@@ -80,7 +80,7 @@ protected:
 protected:
 
 	/** Called for movement input */
-	virtual void Move(const FInputActionValue& Value) override;
+	virtual const FVector ReturnDirection(const FRotator& YawRotation, EAxis::Type coord) const override;
 
 protected:
 	void HideSwitcher_Implementation(const FInputActionValue& Value);

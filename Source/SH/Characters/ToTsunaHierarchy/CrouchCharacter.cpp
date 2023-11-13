@@ -206,6 +206,27 @@ void ACrouchCharacter::GoToCoverWhileHit()
 	}
 }
 
+const FVector ACrouchCharacter::ReturnDirection(const FRotator& YawRotation, EAxis::Type coord) const
+{
+	// TODO: insert return statement here
+	if (HideState == EHideStates::Hide)
+	{
+		switch (coord)
+		{
+		case EAxis::X:
+		case EAxis::Y:
+			return FVector::DotProduct(FRotationMatrix(YawRotation).GetUnitAxis(coord), Right) * Right;;
+		default:
+			return FVector::ZeroVector;
+			break;
+		}
+	}
+	else
+	{
+		return Super::ReturnDirection(YawRotation, coord);
+	}
+}
+
 void ACrouchCharacter::HideSwitcher_Implementation(const FInputActionValue& Value)
 {
 	if (!bCanHide)
@@ -267,36 +288,6 @@ ECrouchStates ACrouchCharacter::ReciveCrouchData_Implementation()
 {
 	return CharacterCrouchState;
 }
-
-void ACrouchCharacter::Move(const FInputActionValue& Value)
-{
-	if (HideState == EHideStates::Hide)
-	{
-		const FVector2D MovementVector = Value.Get<FVector2D>();
-
-		if (Controller != nullptr)
-		{
-			// find out which way is forward
-			const FRotator Rotation = Controller->GetControlRotation();
-			const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-			// get forward vector
-			const FVector ForwardDirection = FVector::DotProduct(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X), Right) * Right;
-
-			// get right vector 
-			const FVector RightDirection = FVector::DotProduct(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y), Right) * Right;
-
-			// add movement 
-			AddMovementInput(ForwardDirection, MovementVector.Y);
-			AddMovementInput(RightDirection, MovementVector.X);
-		}
-	}
-	else
-	{
-		Super::Move(Value);
-	}
-}
-
 
 void ACrouchCharacter::OnCapsuleHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {

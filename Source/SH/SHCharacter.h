@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
-//#include "Interfaces/WalkSpeedUpdateInterface.h"
 #include "Interfaces/WalkJogSwitcherInterface.h"
 #include "SHCharacter.generated.h"
 
@@ -53,7 +52,8 @@ public:
 protected:
 
 	/** Called for movement input */
-	virtual void Move(const FInputActionValue& Value);
+	virtual const FVector ReturnDirection(const FRotator& YawRotation, EAxis::Type coord) const;
+	void Move(const FInputActionValue& Value);
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
@@ -63,7 +63,7 @@ protected:
 	void SetGaitData_Implementation(ESpeedStates State);
 	virtual FPlayerMovementInfo* GetPlayerMovementInfo();
 	UPROPERTY(EditDefaultsOnly, Category = "Player Movement|Info") TMap<ESpeedStates, FPlayerMovementInfo> WalkJogSpeedData;
-	UPROPERTY(EditAnywhere, Category = "Player Movement|Info") ESpeedStates CharacterSpeedState { ESpeedStates::Joging };
+	UPROPERTY(EditAnywhere, Category = "Player Movement|Info") ESpeedStates CharacterSpeedState { ESpeedStates::Walking };
 public:
 	ESpeedStates ReciveGaitData_Implementation();
 
@@ -79,5 +79,6 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
 };
 

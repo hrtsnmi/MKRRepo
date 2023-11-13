@@ -101,6 +101,21 @@ void ASHCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 
 }
 
+
+const FVector ASHCharacter::ReturnDirection(const FRotator& YawRotation, EAxis::Type coord) const
+{
+	// TODO: insert return statement here
+	switch (coord)
+	{
+	case EAxis::X:
+	case EAxis::Y:
+		return FRotationMatrix(YawRotation).GetUnitAxis(coord);
+	default:
+		return FVector::ZeroVector;
+		break;
+	}
+}
+
 void ASHCharacter::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
@@ -113,10 +128,10 @@ void ASHCharacter::Move(const FInputActionValue& Value)
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
 		// get forward vector
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector ForwardDirection = ReturnDirection(YawRotation, EAxis::X);
 	
 		// get right vector 
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		const FVector RightDirection = ReturnDirection(YawRotation, EAxis::Y);
 
 		// add movement 
 		AddMovementInput(ForwardDirection, MovementVector.Y);
