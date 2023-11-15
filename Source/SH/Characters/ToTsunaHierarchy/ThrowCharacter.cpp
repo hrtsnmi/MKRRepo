@@ -11,11 +11,11 @@
 #include "Animation/AnimMontage.h"
 #include "Kismet/GameplayStatics.h"
 #include "../../QuantumtKnife.h"
-#include "NiagaraComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Components/SplineComponent.h"
+#include "NiagaraComponent.h"
 
 AThrowCharacter::AThrowCharacter()
 {
@@ -23,13 +23,11 @@ AThrowCharacter::AThrowCharacter()
 	Knife = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Knife"));;
 	KnifeLocation = CreateDefaultSubobject<USceneComponent>(TEXT("KnifeLocation"));
 	RectLightComp = CreateDefaultSubobject<URectLightComponent>(TEXT("RectLightComponent"));
-	NS_LeakParticles = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Leak Particles"));
 	
 	KnifeLocation->SetupAttachment(GetMesh(), FName("KnifeLocation"));
 	RectLightComp->SetupAttachment(KnifeLocation);
 	Knife->SetupAttachment(KnifeLocation);
 	RectLightComp->SetVisibility(false);
-	NS_LeakParticles->SetupAttachment(GetMesh());
 	
 	KnifeSpline = CreateDefaultSubobject<USplineComponent>(TEXT("Knife Spline"));;
 	KnifeSpline->SetupAttachment(RootComponent);
@@ -70,17 +68,23 @@ void AThrowCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 		//Throwing
 		EnhancedInputComponent->BindAction(ThrowAction, ETriggerEvent::Completed, this, &AThrowCharacter::Throw);
 		//Throwing
-		EnhancedInputComponent->BindAction(ThrowAction, ETriggerEvent::Triggered, this, &AThrowCharacter::ShowParticlePath);
+		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &AThrowCharacter::ShowParticlePath);
+		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AThrowCharacter::RemoveParticlePath);
 		//Throwing
 		EnhancedInputComponent->BindAction(KnifeBackAction, ETriggerEvent::Started, this, &AThrowCharacter::SpawnKnifeBack);
 
 	}
 }
 
+void AThrowCharacter::RemoveParticlePath(const FInputActionValue& Value)
+{
+	ClearSpline(SplineMeshes, KnifeSpline);
+	EndSpline->SetVisibility(false);
+}
 
 void AThrowCharacter::Throw(const FInputActionValue& Value)
 {
-	ClearSpline(SplineMeshes, KnifeSpline);
+	//ClearSpline(SplineMeshes, KnifeSpline);
 	
 	if (SpawnTimeline->IsActive()) return;
 	
@@ -95,7 +99,7 @@ void AThrowCharacter::Throw(const FInputActionValue& Value)
 	}
 	else
 	{
-		EndSpline->SetVisibility(false);
+		//EndSpline->SetVisibility(false);
 		if (!ThrowMontage) return;
 		if (GetWorldTimerManager().IsTimerActive(ThrowMontageTimer)) return;
 		float throwingTime = PlayAnimMontage(ThrowMontage, ThrowRate) * 0.45f;
@@ -190,6 +194,7 @@ void AThrowCharacter::HandleSpawnProgress(float Value)
 	//Dissapearing
 	GetMesh()->SetScalarParameterValueOnMaterials(ParamaterName, Value);
 	NS_LeakParticles->SetNiagaraVariableFloat(ParamaterName.ToString(), Value);
+
 }
 
 //Procces Exid from Timeline
@@ -212,6 +217,12 @@ void AThrowCharacter::SpawnTimelineFinishedFunction()
 			//GetController()->SetActorRotation(FNewRotator);
 		}
 		SpawnTimeline->Reverse();
+
+		if (OnCharacterDisappearDelegate.IsBound())
+		{
+			OnCharacterDisappearDelegate.Broadcast();
+			OnCharacterDisappearDelegate.RemoveAll(this);
+		}
 	}
 	else
 	{

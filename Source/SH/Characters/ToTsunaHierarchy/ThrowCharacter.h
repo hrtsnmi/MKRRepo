@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../../SHCharacter.h"
+#include "NiagaraCharacter.h"
 #include "Components/TimelineComponent.h"
 #include "Kismet/GameplayStaticsTypes.h"
 #include "Components/SplineMeshComponent.h"
 #include "ThrowCharacter.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAddSplineMeshAtIndexSignature, int32, index);
-
+DECLARE_MULTICAST_DELEGATE(FCharacterDisappearSignature);
 
 
 void ClearSpline(TArray<USplineMeshComponent*>& SplineMeshes, class USplineComponent* KnifeSpline);
@@ -19,7 +19,7 @@ void ClearSpline(TArray<USplineMeshComponent*>& SplineMeshes, class USplineCompo
  * 
  */
 UCLASS()
-class SH_API AThrowCharacter : public ASHCharacter
+class SH_API AThrowCharacter : public ANiagaraCharacter
 {
 	GENERATED_BODY()
 	
@@ -29,6 +29,8 @@ public:
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* ThrowAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		class UInputAction* AimAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		class UInputAction* KnifeBackAction;
 
@@ -68,8 +70,6 @@ private:
 		void SpawnTimelineFinishedFunction();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Throw|Data", meta = (AllowPrivateAccess = "true"))
-		class UNiagaraComponent* NS_LeakParticles;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Throw|Data", meta = (AllowPrivateAccess = "true"))
 		FName ParamaterName = "Animation";
 
 public:
@@ -93,9 +93,14 @@ protected:
 
 protected:
 	/** Called for movement input */
-	void Throw(const FInputActionValue& Value);
+	virtual void Throw(const FInputActionValue& Value);
+	void RemoveParticlePath(const FInputActionValue& Value);
 	/** Called for movement input */
 	void ShowParticlePath(const FInputActionValue& Value);
 	/** Called for movement input */
 	void SpawnKnifeBack(const FInputActionValue& Value);
+
+public:
+	//for AI
+	FCharacterDisappearSignature OnCharacterDisappearDelegate;
 };

@@ -3,9 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../SHCharacter.h"
+#include "ToTsunaHierarchy/NiagaraCharacter.h"
 #include "../Interfaces/WalkSpeedUpdateInterface.h"
 #include "../Interfaces/FollowPatrolPathInterface.h"
+#include "../Interfaces/CanBeAttackInterface.h"
+#include "../Interfaces/PatrolStateInterface.h"
+#include "Engine/TargetPoint.h"
 #include "EnemyCharacter.generated.h"
 
 /**
@@ -13,8 +16,51 @@
  */
 
 UCLASS()
-class SH_API AEnemyCharacter : public ASHCharacter, public IFollowPatrolPathInterface
+class SH_API AEnemyCharacter : public ANiagaraCharacter,
+	public IFollowPatrolPathInterface,
+	public ICanBeAttackInterface,
+	public IPatrolStateInterface,
+	public IWalkSpeedUpdateInterface
 {
 	GENERATED_BODY()
 	
+public:
+	AEnemyCharacter();
+
+protected:
+	UPROPERTY(EditAnywhere, Category = "ToUnderAttack", meta = (AllowPrivateAccess = "true"))
+		class USceneComponent* StartPlace;
+	UPROPERTY(EditAnywhere, Category = "ToUnderAttack", meta = (AllowPrivateAccess = "true"))
+		class UBoxComponent* BoxComp;
+
+	UPROPERTY(EditAnywhere, Category = "Warping Component")
+		UAnimMontage* AttackedByMontage;
+
+	UPROPERTY(EditAnywhere, Category = "Widget Component")
+		class UWidgetComponent* HideKillWidget;
+
+	FTimerHandle AttackedByTH;
+
+	UPROPERTY(EditInstanceOnly, Category = "AI|Path", meta = (AllowPrivateAccess = "true"))
+		TArray<class ATargetPoint*> PatrolPath;
+
+protected:
+	void AfterAttackedBy();
+
+	//AI
+protected:
+	void SetPatrolData_Implementation(EPatrolStates State);
+
+public:
+	EPatrolStates RecivePatrolData_Implementation();
+	void UpdateWalkSpeed_Implementation(float NewWalkSpeed);
+
+protected:
+	UPROPERTY(EditAnywhere, Category = "AI", meta = (AllowPrivateAccess = "true"))
+		EPatrolStates PatrolState {EPatrolStates::Random};
+
+public:
+	bool UnderAttack_Implementation();
+	FTransform GetPreUnderAttack_Implementation();
+
 };

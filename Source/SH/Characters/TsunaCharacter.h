@@ -3,15 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ToTsunaHierarchy/CrouchCharacter.h"
+#include "ToTsunaHierarchy/MotionWarpingCharacter.h"
 #include "TsunaCharacter.generated.h"
 
-
 UCLASS()
-class SH_API ATsunaCharacter : public ACrouchCharacter
+class SH_API ATsunaCharacter : public AMotionWarpingCharacter
 {
 	GENERATED_BODY()
-
 
 
 };
