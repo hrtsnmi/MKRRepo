@@ -4,10 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "ToTsunaHierarchy/NiagaraCharacter.h"
-#include "../Interfaces/WalkSpeedUpdateInterface.h"
 #include "../Interfaces/FollowPatrolPathInterface.h"
 #include "../Interfaces/CanBeAttackInterface.h"
-#include "../Interfaces/PatrolStateInterface.h"
+#include "../Interfaces/FollowPatrolPathInterface.h"
 #include "Engine/TargetPoint.h"
 #include "EnemyCharacter.generated.h"
 
@@ -18,9 +17,7 @@
 UCLASS()
 class SH_API AEnemyCharacter : public ANiagaraCharacter,
 	public IFollowPatrolPathInterface,
-	public ICanBeAttackInterface,
-	public IPatrolStateInterface,
-	public IWalkSpeedUpdateInterface
+	public ICanBeAttackInterface
 {
 	GENERATED_BODY()
 	
@@ -43,6 +40,8 @@ protected:
 
 	UPROPERTY(EditInstanceOnly, Category = "AI|Path", meta = (AllowPrivateAccess = "true"))
 		TArray<class ATargetPoint*> PatrolPath;
+	int i{};
+	bool bForwardFollowing{ true };
 
 protected:
 	void AfterAttackedBy();
@@ -53,7 +52,9 @@ protected:
 
 public:
 	EPatrolStates RecivePatrolData_Implementation();
-	void UpdateWalkSpeed_Implementation(float NewWalkSpeed);
+
+	FVector GoForwardBackwardPath_Implementation();
+	FVector GoCyclePath_Implementation();
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "AI", meta = (AllowPrivateAccess = "true"))

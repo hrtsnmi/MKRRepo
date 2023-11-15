@@ -2,7 +2,7 @@
 
 
 #include "BTT_ChasePlayer.h"
-#include "../../Interfaces/WalkSpeedUpdateInterface.h"
+#include "../../Interfaces/WalkJogSwitcherInterface.h"
 #include "../AIEnemyController.h"
 
 EBTNodeResult::Type UBTT_ChasePlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -18,13 +18,13 @@ EBTNodeResult::Type UBTT_ChasePlayer::ExecuteTask(UBehaviorTreeComponent& OwnerC
 			return TaskResult;
 		}
 
-		bool bPawnHasInterface = Executer->GetClass()->ImplementsInterface(UWalkSpeedUpdateInterface::StaticClass());
+		bool bPawnHasInterface = Executer->GetClass()->ImplementsInterface(UWalkJogSwitcherInterface::StaticClass());
 		if (!bPawnHasInterface)
 		{
 			return TaskResult;
 		}
 
-		IWalkSpeedUpdateInterface::Execute_UpdateWalkSpeed(Executer, ChaseSpeed);
+		IWalkJogSwitcherInterface::Execute_SetGaitData(Executer, ESpeedStates::Joging);
 
 		TaskResult = EBTNodeResult::Type::Succeeded;
 	}

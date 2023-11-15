@@ -4,7 +4,6 @@
 #include "EnemyCharacter.h"
 #include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
 
 AEnemyCharacter::AEnemyCharacter()
 {
@@ -59,7 +58,50 @@ EPatrolStates AEnemyCharacter::RecivePatrolData_Implementation()
 	return PatrolState;
 }
 
-void AEnemyCharacter::UpdateWalkSpeed_Implementation(float NewWalkSpeed)
+
+FVector AEnemyCharacter::GoForwardBackwardPath_Implementation()
 {
-	GetCharacterMovement()->MaxWalkSpeed = NewWalkSpeed;
+	// TODO: insert return statement here
+	if (PatrolPath.Num() > 0)
+	{
+		if (bForwardFollowing && i >= PatrolPath.Num())
+		{
+			bForwardFollowing = false;
+			i = PatrolPath.Num() - 1;
+		}
+
+		if (!bForwardFollowing && i < 0)
+		{
+			bForwardFollowing = true;
+			i = 0;
+		}
+
+		if (bForwardFollowing)
+		{
+			return PatrolPath[i++]->GetActorLocation();
+		}
+		else
+		{
+			return PatrolPath[i--]->GetActorLocation();
+		}
+	}
+	else
+	{
+		return GetActorLocation();
+	}
+}
+
+FVector AEnemyCharacter::GoCyclePath_Implementation()
+{
+	if (PatrolPath.Num() > 0)
+	{
+		const FVector& result = PatrolPath[i]->GetActorLocation();
+		i++;
+		i %= PatrolPath.Num();
+		return result;
+	}
+	else
+	{
+		return GetActorLocation();
+	}
 }

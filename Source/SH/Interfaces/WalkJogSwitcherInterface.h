@@ -58,8 +58,8 @@ class SH_API IWalkJogSwitcherInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 protected:
 	UFUNCTION(BlueprintNativeEvent) void WalkJogSwitcher(const FInputActionValue& Value);
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent) void SetGaitData(ESpeedStates State);
 
 public:
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent) void SetGaitData(ESpeedStates State);
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent) ESpeedStates ReciveGaitData();
 };

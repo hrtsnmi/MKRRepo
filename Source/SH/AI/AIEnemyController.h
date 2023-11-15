@@ -57,6 +57,11 @@ public:
 	};
 
 	UPROPERTY(EditDefaultsOnly, Category = "Enemy Data")
+		FName LostRecently {
+		FName("LostRecently")
+	};
+
+	UPROPERTY(EditDefaultsOnly, Category = "Enemy Data")
 		float LineOfSightTime{ 4.0f };
 
 public:

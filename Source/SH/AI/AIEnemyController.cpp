@@ -51,6 +51,7 @@ void AAIEnemyController::PerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 		{
 			BB->SetValueAsBool(HasLineOfSight, true);
 			BB->SetValueAsObject(EnemyActor, Actor);
+			BB->SetValueAsBool(LostRecently, false);
 		}
 	}
 	else
@@ -62,6 +63,7 @@ void AAIEnemyController::PerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 				{
 					BB->SetValueAsBool(HasLineOfSight, false);
 					BB->SetValueAsObject(EnemyActor, nullptr);
+					BB->SetValueAsBool(LostRecently, true);
 				}
 			}),
 			LineOfSightTime, false);
@@ -75,5 +77,6 @@ void AAIEnemyController::AfterTargetTeleports()
 	{
 		BB->SetValueAsBool(HasLineOfSight, false);
 		BB->SetValueAsObject(EnemyActor, nullptr);
+		BB->SetValueAsBool(LostRecently, true);
 	}
 }
