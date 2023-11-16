@@ -11,7 +11,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAddSplineMeshAtIndexSignature, int32, index);
 DECLARE_MULTICAST_DELEGATE(FCharacterDisappearSignature);
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSetVisabilitySignature, bool, bIsVisible);
 
 void ClearSpline(TArray<USplineMeshComponent*>& SplineMeshes, class USplineComponent* KnifeSpline);
 
@@ -99,6 +99,16 @@ protected:
 	void ShowParticlePath(const FInputActionValue& Value);
 	/** Called for movement input */
 	void SpawnKnifeBack(const FInputActionValue& Value);
+
+	
+	UPROPERTY(BlueprintAssignable)
+		FSetVisabilitySignature OnSetVisabilityDelegate;
+
+	UPROPERTY()
+		FTimerHandle Location2SecAgoTimer;
+	UPROPERTY(BlueprintReadOnly) TMap<FVector, FTimerHandle> LocationSavedFor2Sec;
+	UPROPERTY(EditDefaultsOnly) bool bUseTimers{ false };
+	UFUNCTION(BlueprintCallable)void SetUpTimers(bool bIsActive = false);
 
 public:
 	//for AI

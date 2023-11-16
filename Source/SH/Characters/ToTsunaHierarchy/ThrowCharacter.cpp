@@ -20,15 +20,10 @@
 AThrowCharacter::AThrowCharacter()
 {
 	//SetUpKnifeLocation
-	Knife = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Knife"));;
 	KnifeLocation = CreateDefaultSubobject<USceneComponent>(TEXT("KnifeLocation"));
-	RectLightComp = CreateDefaultSubobject<URectLightComponent>(TEXT("RectLightComponent"));
-	
 	KnifeLocation->SetupAttachment(GetMesh(), FName("KnifeLocation"));
-	RectLightComp->SetupAttachment(KnifeLocation);
+	Knife = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Knife"));;
 	Knife->SetupAttachment(KnifeLocation);
-	RectLightComp->SetVisibility(false);
-	
 	KnifeSpline = CreateDefaultSubobject<USplineComponent>(TEXT("Knife Spline"));;
 	KnifeSpline->SetupAttachment(RootComponent);
 	
@@ -105,7 +100,7 @@ void AThrowCharacter::Throw(const FInputActionValue& Value)
 		float throwingTime = PlayAnimMontage(ThrowMontage, ThrowRate) * 0.45f;
 		GetWorldTimerManager().SetTimer(ThrowMontageTimer, FTimerDelegate::CreateLambda([this]
 			{
-				Knife->SetVisibility(false);
+				OnSetVisabilityDelegate.Broadcast(false);
 
 				if (!KnifeProj) return;
 
@@ -174,7 +169,7 @@ void AThrowCharacter::SpawnKnifeBack(const FInputActionValue& Value)
 	{
 		//PlayTimeline for Knife
 		bWasThrown = false;
-		Knife->SetVisibility(true);
+		OnSetVisabilityDelegate.Broadcast(true);
 		if (ThownProjectile)
 		{
 			ThownProjectile->Destroy();
@@ -206,7 +201,7 @@ void AThrowCharacter::SpawnTimelineFinishedFunction()
 		//Actor disapered and spawn to new loc
 		bWasThrown = false;
 
-		Knife->SetVisibility(true);
+		OnSetVisabilityDelegate.Broadcast(true);
 		if (ThownProjectile)
 		{
 			ThownProjectile->Destroy();
@@ -245,4 +240,46 @@ void ClearSpline(TArray<USplineMeshComponent*>& SplineMeshes, USplineComponent* 
 		SplineMeshes.Empty();
 	}
 	KnifeSpline->ClearSplinePoints();
+}
+
+
+
+void AThrowCharacter::SetUpTimers(bool bIsActive)
+{
+	if (bIsActive)
+	{
+		GetWorldTimerManager().SetTimer(Location2SecAgoTimer, FTimerDelegate::CreateLambda([this]
+			{
+				FVector location = KnifeLocation->GetComponentLocation();
+		if (!LocationSavedFor2Sec.Find(location))
+		{
+			LocationSavedFor2Sec.Add(location, FTimerHandle());
+			GetWorldTimerManager().SetTimer(*LocationSavedFor2Sec.Find(location),
+				FTimerDelegate::CreateLambda([this, location]
+					{
+						LocationSavedFor2Sec.Remove(location);
+
+					}),
+				2.0f, false);
+
+			for (const TPair<FVector, FTimerHandle> loc: LocationSavedFor2Sec)
+			{
+			
+				DrawDebugSphere(GetWorld(), loc.Key, 10.f, 10, FColor::Red, false, 15.f);
+				
+			}
+		}
+
+			}),
+			0.5f, true);
+	}
+	else
+	{
+		GetWorldTimerManager().ClearTimer(Location2SecAgoTimer);
+		LocationSavedFor2Sec.Empty();
+		for (const TPair<FVector, FTimerHandle>& PreviousLocation : LocationSavedFor2Sec)
+		{
+			DrawDebugSphere(GetWorld(), PreviousLocation.Key, 500.f, 24, FColor::Red, false, 2.f);
+		}
+	}
 }

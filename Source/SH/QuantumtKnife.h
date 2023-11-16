@@ -56,11 +56,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	//
-	UPROPERTY()
-		FTimerHandle Location2SecAgoTimer;
-	UPROPERTY() TMap<FVector, FTimerHandle> LocationSavedFor2Sec;
-
-	void SetUpTimers(bool = false);
+	
 
 public:	
 	// Called every frame
@@ -76,4 +72,5 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ExposeOnSpawn = true), Category = "Throw|Speed")
 		float StartSpeed{ 1000.f };
 
+	
 };
