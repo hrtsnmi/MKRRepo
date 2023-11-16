@@ -8,6 +8,8 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "DrawDebugHelpers.h"
 
 void AQuantumtKnife::BeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -53,6 +55,10 @@ void AQuantumtKnife::Tick(float DeltaTime)
 
 	
 	SetActorRotation(GetVelocity().Rotation());
+
+	
+	DrawDebugSphere(GetWorld(), GetActorLocation(), 500.f, 24, FColor::Red);
+	
 }
 
 void AQuantumtKnife::UseTimeLineParticle(const FString& ParamaterName, float Value)
@@ -70,6 +76,8 @@ void AQuantumtKnife::ActivateParticle(bool bActivate)
 	{
 		NS_LeakParticlesProj->Deactivate();
 	}
+
+	SetUpTimers(bActivate);
 }
 
 float& AQuantumtKnife::AddOwnerSpeed()
@@ -77,3 +85,34 @@ float& AQuantumtKnife::AddOwnerSpeed()
 	return ProjectileMovementComp->InitialSpeed;
 }
 
+void AQuantumtKnife::SetUpTimers(bool bIsActive)
+{
+	if (bIsActive)
+	{
+		GetWorldTimerManager().SetTimer(Location2SecAgoTimer, FTimerDelegate::CreateLambda([this]
+			{
+				FVector location = GetActorLocation();
+				if (!LocationSavedFor2Sec.Find(location))
+				{
+					LocationSavedFor2Sec.Add(location, FTimerHandle());
+					GetWorldTimerManager().SetTimer(*LocationSavedFor2Sec.Find(location),
+						FTimerDelegate::CreateLambda([this, location]
+						{
+								LocationSavedFor2Sec.Remove(location);
+
+						}),
+						2.0f, false);
+				}
+
+				for (const TPair<FVector, FTimerHandle>& PreviousLocation : LocationSavedFor2Sec)
+				{
+					DrawDebugSphere(GetWorld(), PreviousLocation.Key, 500.f, 24, FColor::Red, false, 2.f);
+				}
+			}),
+			0.5f, true);
+	}
+	else
+	{
+		GetWorldTimerManager().ClearTimer(Location2SecAgoTimer);
+	}
+}

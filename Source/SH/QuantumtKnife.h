@@ -20,6 +20,9 @@ private:
 			bool bFromSweep,
 			const FHitResult& SweepResult);
 
+	UPROPERTY()
+		TArray<FHitResult>OutHits;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Throw|Data", meta = (AllowPrivateAccess = "true"))
 		class UNiagaraComponent* NS_LeakParticlesProj;
 
@@ -51,6 +54,13 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	//
+	UPROPERTY()
+		FTimerHandle Location2SecAgoTimer;
+	UPROPERTY() TMap<FVector, FTimerHandle> LocationSavedFor2Sec;
+
+	void SetUpTimers(bool = false);
 
 public:	
 	// Called every frame
