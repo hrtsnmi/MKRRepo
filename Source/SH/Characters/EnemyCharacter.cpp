@@ -4,6 +4,8 @@
 #include "EnemyCharacter.h"
 #include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
+#include "../AI/AIEnemyController.h"
+#include "BehaviorTree/BlackboardComponent.h"
 
 AEnemyCharacter::AEnemyCharacter()
 {
@@ -17,6 +19,16 @@ AEnemyCharacter::AEnemyCharacter()
 		TEXT("Widget Component"));
 	HideKillWidget->SetupAttachment(RootComponent);
 	HideKillWidget->SetVisibility(false);
+}
+
+void AEnemyCharacter::SetKnifeLoaction_Implementation(const FVector& Location)
+{
+	AAIEnemyController* AIContr = Cast<AAIEnemyController>(GetController());
+	if (!AIContr) return;
+
+	AIContr->GetBlackboardComponent()->SetValueAsBool(FName("Knife"), true);
+	//AIContr->GetBlackboardComponent()->SetValueAsBool(FName("HasLineOfSight"), false);
+	AIContr->GetBlackboardComponent()->SetValueAsVector(FName("TargetLocation"), Location);
 }
 
 bool AEnemyCharacter::UnderAttack_Implementation()

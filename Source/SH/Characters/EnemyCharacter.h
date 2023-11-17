@@ -8,6 +8,7 @@
 #include "../Interfaces/CanBeAttackInterface.h"
 #include "../Interfaces/FollowPatrolPathInterface.h"
 #include "Engine/TargetPoint.h"
+#include "ToTsunaHierarchy/LookAtKnifeInterface.h"
 #include "EnemyCharacter.generated.h"
 
 /**
@@ -17,12 +18,15 @@
 UCLASS()
 class SH_API AEnemyCharacter : public ANiagaraCharacter,
 	public IFollowPatrolPathInterface,
-	public ICanBeAttackInterface
+	public ICanBeAttackInterface,
+	public ILookAtKnifeInterface
 {
 	GENERATED_BODY()
 	
 public:
 	AEnemyCharacter();
+
+	void SetKnifeLoaction_Implementation(const FVector& Location);
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "ToUnderAttack", meta = (AllowPrivateAccess = "true"))

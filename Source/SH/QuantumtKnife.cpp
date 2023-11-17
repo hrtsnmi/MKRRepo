@@ -8,6 +8,8 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraComponent.h"
+#include "DrawDebugHelpers.h"
+#include "Characters/ToTsunaHierarchy/LookAtKnifeInterface.h"
 
 void AQuantumtKnife::BeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -44,6 +46,47 @@ void AQuantumtKnife::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	GetWorldTimerManager().SetTimer(LightTimerDelegate, FTimerDelegate::CreateLambda([this]
+		{
+			Light();
+		}), 0.5f, true);
+}
+
+void AQuantumtKnife::Light()
+{
+	TArray<FHitResult> OutHit;
+
+	FVector ActorLocation = GetActorLocation();
+
+	FCollisionShape MyShape = FCollisionShape::MakeSphere(500.f);
+
+	//DrawDebugSphere(GetWorld(), ActorLocation, 500.f, 12, FColor::Red, false, 0.5f);
+
+	bool isHit = GetWorld()->SweepMultiByChannel(OutHit, ActorLocation, ActorLocation, FQuat::Identity, ECC_WorldDynamic, MyShape);
+	if (!isHit) return;
+
+	for (const FHitResult& Hit : OutHit)
+	{
+		if (FVector::DotProduct(Hit.GetActor()->GetActorForwardVector(), ActorLocation - Hit.GetActor()->GetActorLocation())
+			<0.3f)
+		{
+			return;
+		}
+
+		FHitResult BorderCheck;
+		if (!GetWorld()->LineTraceSingleByChannel(BorderCheck, ActorLocation, Hit.GetActor()->GetActorLocation(), ECC_Visibility) ||
+			!BorderCheck.GetActor() ||
+			BorderCheck.GetActor() != Hit.GetActor())
+		{
+			return;
+		}
+
+		if (Hit.GetActor()->GetClass()->ImplementsInterface(ULookAtKnifeInterface::StaticClass()))
+		{
+			ILookAtKnifeInterface::Execute_SetKnifeLoaction(Hit.GetActor(), GetActorLocation());
+		}
+	}
+	
 }
 
 // Called every frame
@@ -53,6 +96,7 @@ void AQuantumtKnife::Tick(float DeltaTime)
 
 	
 	SetActorRotation(GetVelocity().Rotation());
+	
 }
 
 void AQuantumtKnife::UseTimeLineParticle(const FString& ParamaterName, float Value)
@@ -75,5 +119,11 @@ void AQuantumtKnife::ActivateParticle(bool bActivate)
 float& AQuantumtKnife::AddOwnerSpeed()
 {
 	return ProjectileMovementComp->InitialSpeed;
+}
+
+void AQuantumtKnife::StopLight()
+{
+	GetWorldTimerManager().ClearTimer(LightTimerDelegate);
+	Destroy();
 }
 

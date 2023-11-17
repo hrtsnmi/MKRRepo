@@ -52,6 +52,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	void Light();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -65,5 +67,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ExposeOnSpawn = true), Category = "Throw|Speed")
 		float StartSpeed{ 1000.f };
+
+	FTimerHandle LightTimerDelegate;
+	void StopLight();
 
 };
