@@ -177,6 +177,11 @@ void ACrouchCharacter::BoxComponentBeginOverlap(UPrimitiveComponent* OverlappedC
 	//DrawDebugSphere(world, RightEndPoint, 10.f, 10, FColor::Green, false, 5.f);
 	//DrawDebugSphere(world, LeftEndPoint, 10.f, 10, FColor::Green, false, 5.f);
 
+	if ((RightEndPoint - LeftEndPoint).Size() > 1000.f)
+	{
+		return;
+	}
+
 	if ((RightEndPoint - LeftEndPoint).Size() < GetCapsuleComponent()->GetScaledCapsuleRadius() * 2.0f)
 	{
 		return;
