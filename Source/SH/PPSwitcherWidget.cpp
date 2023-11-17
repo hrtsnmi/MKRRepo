@@ -123,9 +123,9 @@ void UPPSwitcherWidget::SetCheckState(bool bNameVisibility)
 	//Set default CheckBox CheckedState from current bShowName in Character
 
 	//only if widget has been
-	if (m_ShowNameCheckBox->CheckedState == ECheckBoxState::Undetermined)
+	/*if (m_ShowNameCheckBox->CheckedState == ECheckBoxState::Undetermined)
 	{
 		m_ShowNameCheckBox->CheckedState =
 			bNameVisibility ? ECheckBoxState::Checked : ECheckBoxState::Unchecked;
-	}
+	}*/
 }

@@ -7,9 +7,9 @@
 ASHGameMode::ASHGameMode()
 {
 	// set default pawn class to our Blueprinted character
-	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/ThirdPerson/Blueprints/Character/BP_TsunaCharacter.BP_TsunaCharacter"));
-	if (PlayerPawnBPClass.Class != NULL)
+	// static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/ThirdPerson/Blueprints/Character/BP_TsunaCharacter.BP_TsunaCharacter"));
+	//if (PlayerPawnBPClass.Class != NULL)
 	{
-		DefaultPawnClass = PlayerPawnBPClass.Class;
+		//DefaultPawnClass = PlayerPawnBPClass.Class;
 	}
 }
