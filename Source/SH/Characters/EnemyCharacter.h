@@ -53,6 +53,8 @@ protected:
 	//AI
 protected:
 	void SetPatrolData_Implementation(EPatrolStates State);
+	//virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
 
 public:
 	EPatrolStates RecivePatrolData_Implementation();
@@ -67,5 +69,6 @@ protected:
 public:
 	bool UnderAttack_Implementation();
 	FTransform GetPreUnderAttack_Implementation();
+
 
 };

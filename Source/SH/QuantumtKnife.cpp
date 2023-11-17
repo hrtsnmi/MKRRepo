@@ -49,41 +49,20 @@ void AQuantumtKnife::BeginPlay()
 	GetWorldTimerManager().SetTimer(LightTimerDelegate, FTimerDelegate::CreateLambda([this]
 		{
 			Light();
-		}), 0.5f, true);
+		}), 0.5f, true,5.f);
 }
 
 void AQuantumtKnife::Light()
 {
-	TArray<FHitResult> OutHit;
 
-	FVector ActorLocation = GetActorLocation();
+	TArray<AActor*> Actors;
+	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), ULookAtKnifeInterface::StaticClass(), Actors);
 
-	FCollisionShape MyShape = FCollisionShape::MakeSphere(500.f);
-
-	//DrawDebugSphere(GetWorld(), ActorLocation, 500.f, 12, FColor::Red, false, 0.5f);
-
-	bool isHit = GetWorld()->SweepMultiByChannel(OutHit, ActorLocation, ActorLocation, FQuat::Identity, ECC_WorldDynamic, MyShape);
-	if (!isHit) return;
-
-	for (const FHitResult& Hit : OutHit)
+	for (const AActor* Actor : Actors)
 	{
-		if (FVector::DotProduct(Hit.GetActor()->GetActorForwardVector(), ActorLocation - Hit.GetActor()->GetActorLocation())
-			<0.3f)
+		if((Actor->GetActorLocation() - GetActorLocation()).Size() <= 500.f)
 		{
-			return;
-		}
-
-		FHitResult BorderCheck;
-		if (!GetWorld()->LineTraceSingleByChannel(BorderCheck, ActorLocation, Hit.GetActor()->GetActorLocation(), ECC_Visibility) ||
-			!BorderCheck.GetActor() ||
-			BorderCheck.GetActor() != Hit.GetActor())
-		{
-			return;
-		}
-
-		if (Hit.GetActor()->GetClass()->ImplementsInterface(ULookAtKnifeInterface::StaticClass()))
-		{
-			ILookAtKnifeInterface::Execute_SetKnifeLoaction(Hit.GetActor(), GetActorLocation());
+			ILookAtKnifeInterface::Execute_SetKnifeLoaction((UObject*)Actor, GetActorLocation());
 		}
 	}
 	

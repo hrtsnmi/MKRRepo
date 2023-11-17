@@ -117,11 +117,10 @@ void ACrouchCharacter::BoxComponentBeginOverlap(UPrimitiveComponent* OverlappedC
 	FVector Normal = HitCover.Normal;
 	FVector DistanceToCover = Normal * FVector::DotProduct(Normal, HitCover.ImpactPoint - GetActorLocation());
 
-	DrawDebugLine(world, GetActorLocation(), GetActorLocation() + DistanceToCover, FColor::Red, false, 5.f);
+	//DrawDebugLine(world, GetActorLocation(), GetActorLocation() + DistanceToCover, FColor::Red, false, 5.f);
 
 	//DrawDebugSphere(world, HitCover.ImpactPoint, 10.f, 10, FColor::Green, false, 5.f);
-	DrawDebugDirectionalArrow(world, HitCover.ImpactPoint,
-		HitCover.ImpactPoint + Normal * 100.f, 20, FColor::Blue, false, 5.f);
+	//DrawDebugDirectionalArrow(world, HitCover.ImpactPoint, HitCover.ImpactPoint + Normal * 100.f, 20, FColor::Blue, false, 5.f);
 
 	const int32 stepAmount = 5;
 	int32 verticalStep = GetCapsuleComponent()->GetScaledCapsuleHalfHeight() / stepAmount;
@@ -141,7 +140,7 @@ void ACrouchCharacter::BoxComponentBeginOverlap(UPrimitiveComponent* OverlappedC
 	bool bIsNotCoverEndRight = true;
 	bool bIsNotCoverEndLeft = true;
 	Right = FVector::CrossProduct(Normal, GetActorUpVector());
-	DrawDebugLine(world, GetActorLocation(), GetActorLocation() + Right * 100.f, FColor::Yellow, false, 5.f);
+	//DrawDebugLine(world, GetActorLocation(), GetActorLocation() + Right * 100.f, FColor::Yellow, false, 5.f);
 	Right.Normalize();
 	FVector EndRight;
 	FVector EndLeft;
@@ -175,8 +174,8 @@ void ACrouchCharacter::BoxComponentBeginOverlap(UPrimitiveComponent* OverlappedC
 		}
 	}
 
-	DrawDebugSphere(world, RightEndPoint, 10.f, 10, FColor::Green, false, 5.f);
-	DrawDebugSphere(world, LeftEndPoint, 10.f, 10, FColor::Green, false, 5.f);
+	//DrawDebugSphere(world, RightEndPoint, 10.f, 10, FColor::Green, false, 5.f);
+	//DrawDebugSphere(world, LeftEndPoint, 10.f, 10, FColor::Green, false, 5.f);
 
 	if ((RightEndPoint - LeftEndPoint).Size() < GetCapsuleComponent()->GetScaledCapsuleRadius() * 2.0f)
 	{

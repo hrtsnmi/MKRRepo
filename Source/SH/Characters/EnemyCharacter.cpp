@@ -6,6 +6,8 @@
 #include "Components/WidgetComponent.h"
 #include "../AI/AIEnemyController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 
 AEnemyCharacter::AEnemyCharacter()
 {
@@ -64,6 +66,20 @@ void AEnemyCharacter::SetPatrolData_Implementation(EPatrolStates State)
 {
 	PatrolState = State;
 }
+
+//void AEnemyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+//{
+//	
+//		Super::SetupPlayerInputComponent(PlayerInputComponent);
+//		// Set up action bindings
+//		if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
+//		{
+//
+//			//E
+//			EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &AEnemyCharacter::ResetValue);
+//			EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AEnemyCharacter::SetValue);
+//		}
+//}
 
 EPatrolStates AEnemyCharacter::RecivePatrolData_Implementation()
 {

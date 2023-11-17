@@ -177,7 +177,8 @@ void AThrowCharacter::SpawnKnifeBack(const FInputActionValue& Value)
 		Knife->SetVisibility(true);
 		if (ThownProjectile)
 		{
-			ThownProjectile->Destroy();
+			ThownProjectile->StopLight();
+			ThownProjectile = nullptr;
 		}
 	}
 
@@ -209,11 +210,14 @@ void AThrowCharacter::SpawnTimelineFinishedFunction()
 		Knife->SetVisibility(true);
 		if (ThownProjectile)
 		{
-			ThownProjectile->Destroy();
+			
 			SetActorLocation(ThownProjectile->GetActorLocation());
 			FRotator FNewRotator = GetActorRotation();
 			FNewRotator.Yaw = GetControlRotation().Yaw;
 			SetActorRotation(FNewRotator);
+
+			ThownProjectile->StopLight();
+			ThownProjectile = nullptr;
 			//GetController()->SetActorRotation(FNewRotator);
 		}
 		SpawnTimeline->Reverse();
