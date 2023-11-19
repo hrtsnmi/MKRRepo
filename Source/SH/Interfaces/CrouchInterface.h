@@ -10,8 +10,15 @@
 UENUM(BlueprintType)
 enum class ECrouchStates : uint8
 {
-	Stand UMETA(DisplayName = "Standing"),
-	Crouch UMETA(DisplayName = "Crouching"),
+	Stand	UMETA(DisplayName = "Standing"),
+	Crouch	UMETA(DisplayName = "Crouching"),
+};
+
+UENUM(BlueprintType)
+enum class EEntryExitStates : uint8
+{
+	Exit	UMETA(DisplayName = "Exit"),
+	Enrty	UMETA(DisplayName = "Enrty"),
 };
 
 // This class does not need to be modified.
@@ -35,4 +42,7 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent) ECrouchStates ReciveCrouchData();
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent) void SetEntryExitStateCrouchData(EEntryExitStates State);
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent) EEntryExitStates ReciveCrouchEntryData();
 };

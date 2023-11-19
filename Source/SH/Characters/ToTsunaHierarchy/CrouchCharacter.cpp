@@ -55,6 +55,9 @@ void ACrouchCharacter::BeginPlay()
 	BoxComp->OnComponentBeginOverlap.AddDynamic(this, &ACrouchCharacter::BoxComponentBeginOverlap);
 	BoxComp->OnComponentEndOverlap.AddDynamic(this, &ACrouchCharacter::BoxComponentEndOverlap);
 
+	CharacterCrouchState == ECrouchStates::Stand ?
+		EntryExitState = EEntryExitStates::Enrty : EntryExitState = EEntryExitStates::Exit;
+
 }
 
 void ACrouchCharacter::CrouchSwitcher_Implementation(const FInputActionValue& Value)
@@ -287,6 +290,16 @@ EHideStates ACrouchCharacter::ReciveHideData_Implementation()
 ECrouchStates ACrouchCharacter::ReciveCrouchData_Implementation()
 {
 	return CharacterCrouchState;
+}
+
+void ACrouchCharacter::SetEntryExitStateCrouchData_Implementation(EEntryExitStates State)
+{
+	EntryExitState = State;
+}
+
+EEntryExitStates ACrouchCharacter::ReciveCrouchEntryData_Implementation()
+{
+	return EntryExitState;
 }
 
 void ACrouchCharacter::OnCapsuleHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
