@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "Interfaces/WalkJogSwitcherInterface.h"
+#include "Interfaces/GroundDistanceInterface.h"
 #include "SHCharacter.generated.h"
 
 
@@ -14,7 +15,8 @@ void UpdateMovementDependsOnState(FPlayerMovementInfo* SpeedDataRef, UCharacterM
 
 UCLASS(config=Game)
 class ASHCharacter : public ACharacter,
-	public IWalkJogSwitcherInterface
+	public IWalkJogSwitcherInterface,
+	public IGroundDistanceInterface
 {
 	GENERATED_BODY()
 
@@ -80,6 +82,9 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+public:
+	float GetGroundDistance_Implementation() const;
 
 };
 

@@ -198,3 +198,13 @@ void UpdateMovementDependsOnState(FPlayerMovementInfo* SpeedDataRef, UCharacterM
 		CharacterMovementRef->bUseSeparateBrakingFriction = SpeedDataRef->bUseSeparateBrakingFriction;
 	}
 }
+
+
+float ASHCharacter::GetGroundDistance_Implementation() const
+{
+	FFindFloorResult OutFloorRes;
+
+	GetCharacterMovement()->FindFloor(GetActorLocation(), OutFloorRes, false);
+	
+	return OutFloorRes.FloorDist;
+}
