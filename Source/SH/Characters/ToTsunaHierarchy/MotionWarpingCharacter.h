@@ -22,12 +22,6 @@ protected:
 	//Timer
 	FTimerHandle AfterVaultTH;
 
-
-	/** Jump Input Action */
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputAction* EAction;
-
 	UPROPERTY(EditAnywhere, Category = "Warping Component", meta = (AllowPrivateAccess = "true"))
 		UAnimMontage* KillMontage;
 	UPROPERTY(EditAnywhere, Category = "Warping Component", meta = (AllowPrivateAccess = "true"))
@@ -35,7 +29,7 @@ protected:
 
 protected:
 	virtual void Throw(const FInputActionValue& Value) override;
-	void Interactive(const FInputActionValue& Value);
+	virtual void Interactive(const FInputActionValue& Value) override;
 
 	bool Vault(FVector& VStart, FVector& VMid, FVector& End);
 	void AfterVault();
@@ -45,8 +39,6 @@ protected:
 	bool bEButtonPressed{ false };
 
 protected:
-	// APawn interface
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	void Attack(AActor* Enemy);
 

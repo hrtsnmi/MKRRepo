@@ -5,26 +5,12 @@
 #include "Animation/AnimMontage.h"
 #include "MotionWarping/Public/MotionWarpingComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "EnhancedInputComponent.h"
-#include "EnhancedInputSubsystems.h"
 #include "../../Interfaces/CanBeAttackInterface.h"
 
 AMotionWarpingCharacter::AMotionWarpingCharacter()
 {
 	WarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(
 		TEXT("Warping Component"));
-}
-
-void AMotionWarpingCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	// Set up action bindings
-	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
-
-			//E
-		EnhancedInputComponent->BindAction(EAction, ETriggerEvent::Started, this, &AMotionWarpingCharacter::Interactive);
-		EnhancedInputComponent->BindAction(EAction, ETriggerEvent::Completed, this, &AMotionWarpingCharacter::Interactive);
-	}
 }
 
 void AMotionWarpingCharacter::Attack(AActor* Enemy)

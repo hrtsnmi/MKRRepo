@@ -4,8 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "ThrowCharacter.h"
-#include "../../Interfaces/CrouchInterface.h"
-#include "../../Interfaces/HideInterface.h"
 #include "CrouchCharacter.generated.h"
 
 /**
@@ -13,20 +11,14 @@
  */
 
 UCLASS()
-class SH_API ACrouchCharacter : public AThrowCharacter,
-	public ICrouchInterface,
-	public IHideInterface
+class SH_API ACrouchCharacter : public AThrowCharacter
+	
 {
 	GENERATED_BODY()
 	
 private:
-		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputAction* CrouchAction;
 
-		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-			class UInputAction* HideAction;
-
-		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 		class UBoxComponent* BoxComp;
 
 public:
@@ -35,14 +27,11 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 
 protected:
-	// APawn interface
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
 	virtual void BeginPlay() override;
 
 protected:
-	void CrouchSwitcher_Implementation(const FInputActionValue& Value);
-	void SetCrouchData_Implementation(ECrouchStates State);
+	virtual void CrouchSwitcher_Implementation(const FInputActionValue& Value) override;
+	virtual void SetCrouchData_Implementation(ECrouchStates State) override;
 	virtual FPlayerMovementInfo* GetPlayerMovementInfo() override;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Movement|Info") TMap<ESpeedStates, FPlayerMovementInfo> CrouchSpeedData;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player Movement|Info") ECrouchStates CharacterCrouchState { ECrouchStates::Stand };
@@ -84,19 +73,19 @@ protected:
 	virtual const FVector ReturnDirection(const FRotator& YawRotation, EAxis::Type coord) const override;
 
 protected:
-	void HideSwitcher_Implementation(const FInputActionValue& Value);
-	void SetHideData_Implementation(EHideStates State);
+	virtual void HideSwitcher_Implementation(const FInputActionValue& Value) override;
+	virtual void SetHideData_Implementation(EHideStates State) override;
 
 public:
-	EHideStates ReciveHideData_Implementation();
+	virtual EHideStates ReciveHideData_Implementation() override;
 
 public:
-	ECrouchStates ReciveCrouchData_Implementation();
+	virtual ECrouchStates ReciveCrouchData_Implementation() override;
 
 protected:
 	UPROPERTY() EEntryExitStates EntryExitState;
 
 public:
-	void SetEntryExitStateCrouchData_Implementation(EEntryExitStates State);
-	EEntryExitStates ReciveCrouchEntryData_Implementation();
+	virtual void SetEntryExitStateCrouchData_Implementation(EEntryExitStates State) override;
+	virtual EEntryExitStates ReciveCrouchEntryData_Implementation() override;
 };

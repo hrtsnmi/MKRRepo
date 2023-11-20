@@ -5,8 +5,6 @@
 #include "Components/InputComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Camera/CameraComponent.h"
-#include "EnhancedInputComponent.h"
-#include "EnhancedInputSubsystems.h"
 #include "Components/RectLightComponent.h"
 #include "Animation/AnimMontage.h"
 #include "Kismet/GameplayStatics.h"
@@ -52,22 +50,6 @@ void AThrowCharacter::BeginPlay()
 		SpawnTimeline->AddInterpFloat(SpawnCurveFloat, ProgressFunction, FName("Alpha"));
 		SpawnTimeline->SetTimelineFinishedFunc(SpawnTimelineFinishedEvent);
 		SpawnTimeline->SetLooping(false);
-	}
-}
-
-void AThrowCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	// Set up action bindings
-	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
-		//Throwing
-		EnhancedInputComponent->BindAction(ThrowAction, ETriggerEvent::Completed, this, &AThrowCharacter::Throw);
-		//Throwing
-		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &AThrowCharacter::ShowParticlePath);
-		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AThrowCharacter::RemoveParticlePath);
-		//Throwing
-		EnhancedInputComponent->BindAction(KnifeBackAction, ETriggerEvent::Started, this, &AThrowCharacter::SpawnKnifeBack);
-
 	}
 }
 

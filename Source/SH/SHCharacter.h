@@ -4,9 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "InputActionValue.h"
 #include "Interfaces/WalkJogSwitcherInterface.h"
 #include "Interfaces/GroundDistanceInterface.h"
+#include "InputActionValue.h"
 #include "SHCharacter.generated.h"
 
 
@@ -20,49 +20,23 @@ class ASHCharacter : public ACharacter,
 {
 	GENERATED_BODY()
 
-	/** Camera boom positioning the camera behind the character */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class USpringArmComponent* CameraBoom;
-
-	/** Follow camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* FollowCamera;
-	
-	/** MappingContext */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputMappingContext* DefaultMappingContext;
-
-	/** Jump Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* JumpAction;
-
-	/** Move Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* MoveAction;
-
-	/** Look Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* LookAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputAction* WalkJogSwitcherAction;
-
 public:
 	ASHCharacter();
 	
-
 protected:
 
 	/** Called for movement input */
 	virtual const FVector ReturnDirection(const FRotator& YawRotation, EAxis::Type coord) const;
-	void Move(const FInputActionValue& Value);
 
+public:
 	/** Called for looking input */
-	void Look(const FInputActionValue& Value);
+	
+	void WalkJogSwitcher_Implementation(const FInputActionValue& Value);
+
+	virtual void Look(const FInputActionValue& Value) PURE_VIRTUAL(ASHCharacter::Look, ;);
+	virtual void Move(const FInputActionValue& Value) PURE_VIRTUAL(ASHCharacter::Move, ;);
 
 protected:
-	void WalkJogSwitcher_Implementation(const FInputActionValue& Value);
-	
 	virtual FPlayerMovementInfo* GetPlayerMovementInfo();
 	UPROPERTY(EditDefaultsOnly, Category = "Player Movement|Info") TMap<ESpeedStates, FPlayerMovementInfo> WalkJogSpeedData;
 	UPROPERTY(EditAnywhere, Category = "Player Movement|Info") ESpeedStates CharacterSpeedState { ESpeedStates::Walking };
@@ -71,17 +45,7 @@ public:
 	void SetGaitData_Implementation(ESpeedStates State);
 
 protected:
-	// APawn interface
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
-	// To add mapping context
-	virtual void BeginPlay();
-
-public:
-	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-	/** Returns FollowCamera subobject **/
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	virtual void BeginPlay() override;
 
 public:
 	float GetGroundDistance_Implementation() const;

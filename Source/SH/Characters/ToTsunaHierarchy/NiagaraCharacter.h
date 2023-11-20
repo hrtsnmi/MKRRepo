@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../../SHCharacter.h"
+#include "WithCameraCharacter.h"
 #include "NiagaraCharacter.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class SH_API ANiagaraCharacter : public ASHCharacter
+class SH_API ANiagaraCharacter : public AWithCameraCharacter
 {
 	GENERATED_BODY()
 

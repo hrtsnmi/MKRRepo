@@ -27,12 +27,6 @@ public:
 	AThrowCharacter();
 
 private:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputAction* ThrowAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputAction* AimAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		class UInputAction* KnifeBackAction;
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Throw|Montage", meta = (AllowPrivateAccess = "true"))
@@ -87,18 +81,16 @@ private:
 		TSubclassOf<AQuantumtKnife> KnifeProj;
 
 protected:
-	// APawn interface
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void BeginPlay() override;
 
 protected:
 	/** Called for movement input */
-	virtual void Throw(const FInputActionValue& Value);
-	void RemoveParticlePath(const FInputActionValue& Value);
+	virtual void Throw(const FInputActionValue& Value) override;
+	virtual void RemoveParticlePath(const FInputActionValue& Value) override;
 	/** Called for movement input */
-	void ShowParticlePath(const FInputActionValue& Value);
+	virtual void ShowParticlePath(const FInputActionValue& Value) override;
 	/** Called for movement input */
-	void SpawnKnifeBack(const FInputActionValue& Value);
+	virtual void SpawnKnifeBack(const FInputActionValue& Value) override;
 
 	
 	UPROPERTY(BlueprintAssignable)

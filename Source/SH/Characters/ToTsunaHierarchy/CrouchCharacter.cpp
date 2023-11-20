@@ -5,8 +5,6 @@
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "DrawDebugHelpers.h"
-#include "EnhancedInputComponent.h"
-#include "EnhancedInputSubsystems.h"
 
 ACrouchCharacter::ACrouchCharacter()
 {
@@ -22,19 +20,6 @@ void ACrouchCharacter::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	GoToCoverWhileHit();
-}
-
-void ACrouchCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
-
-		//Crouch
-		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ACrouchCharacter::CrouchSwitcher_Implementation);
-	
-		EnhancedInputComponent->BindAction(HideAction, ETriggerEvent::Started, this, &ACrouchCharacter::HideSwitcher_Implementation);
-	}
 }
 
 void ACrouchCharacter::BeginPlay()
@@ -77,7 +62,6 @@ void ACrouchCharacter::CrouchSwitcher_Implementation(const FInputActionValue& Va
 		break;
 	}
 	SetCrouchData_Implementation(NewState);
-	
 }
 
 void ACrouchCharacter::SetCrouchData_Implementation(ECrouchStates State)
