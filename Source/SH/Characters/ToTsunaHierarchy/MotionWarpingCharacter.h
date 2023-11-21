@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CrouchCharacter.h"
+#include "HideCharacter.h"
 #include "MotionWarpingCharacter.generated.h"
 
 /**
@@ -12,7 +12,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMoveToTargetSignature, FVector, Location);
 
 UCLASS()
-class SH_API AMotionWarpingCharacter : public ACrouchCharacter
+class SH_API AMotionWarpingCharacter : public AHideCharacter
 {
 	GENERATED_BODY()
 	
