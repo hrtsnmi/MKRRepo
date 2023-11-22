@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "ClimbingSystemCharacter.h"
 #include "Interfaces/WalkJogSwitcherInterface.h"
 #include "Interfaces/GroundDistanceInterface.h"
 #include "InputActionValue.h"
@@ -14,7 +14,7 @@
 void UpdateMovementDependsOnState(FPlayerMovementInfo* SpeedDataRef, UCharacterMovementComponent* CharacterMovementRef);
 
 UCLASS(config=Game)
-class ASHCharacter : public ACharacter,
+class ASHCharacter : public AClimbingSystemCharacter,
 	public IWalkJogSwitcherInterface,
 	public IGroundDistanceInterface
 {

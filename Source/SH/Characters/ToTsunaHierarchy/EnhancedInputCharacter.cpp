@@ -84,6 +84,8 @@ void AEnhancedInputCharacter::SetupPlayerInputComponent(class UInputComponent* P
 		//E
 		EnhancedInputComponent->BindAction(EAction, ETriggerEvent::Started, this, &AEnhancedInputCharacter::Interactive);
 		EnhancedInputComponent->BindAction(EAction, ETriggerEvent::Completed, this, &AEnhancedInputCharacter::Interactive);
+	
+		EnhancedInputComponent->BindAction(ClimbAction, ETriggerEvent::Started, this, &AClimbingSystemCharacter::OnClimbActionStarted);
 	}
 }
 
