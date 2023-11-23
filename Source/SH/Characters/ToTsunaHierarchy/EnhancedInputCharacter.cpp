@@ -13,25 +13,21 @@ AEnhancedInputCharacter::AEnhancedInputCharacter()
 
 void AEnhancedInputCharacter::Move(const FInputActionValue& Value)
 {
-	// input is a Vector2D
-	FVector2D MovementVector = Value.Get<FVector2D>();
+	Super::Move(Value);
 
-	if (Controller != nullptr)
-	{
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
+	// find out which way is forward
+	const FRotator Rotation = Controller->GetControlRotation();
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// get forward vector
-		const FVector ForwardDirection = ReturnDirection(YawRotation, EAxis::X);
+	// get forward vector
+	const FVector ForwardDirection = ReturnDirection(YawRotation, EAxis::X);
 
-		// get right vector 
-		const FVector RightDirection = ReturnDirection(YawRotation, EAxis::Y);
+	// get right vector 
+	const FVector RightDirection = ReturnDirection(YawRotation, EAxis::Y);
 
-		// add movement 
-		AddMovementInput(ForwardDirection, MovementVector.Y);
-		AddMovementInput(RightDirection, MovementVector.X);
-	}
+	// add movement 
+	AddMovementInput(ForwardDirection, Value.Get<FVector2D>().Y);
+	AddMovementInput(RightDirection, Value.Get<FVector2D>().X);
 }
 
 void AEnhancedInputCharacter::Look(const FInputActionValue& Value)

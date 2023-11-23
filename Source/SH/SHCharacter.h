@@ -34,7 +34,7 @@ public:
 	void WalkJogSwitcher_Implementation(const FInputActionValue& Value);
 
 	virtual void Look(const FInputActionValue& Value) PURE_VIRTUAL(ASHCharacter::Look, ;);
-	virtual void Move(const FInputActionValue& Value) PURE_VIRTUAL(ASHCharacter::Move, ;);
+	//virtual void Move(const FInputActionValue& Value) PURE_VIRTUAL(ASHCharacter::Move, ;);
 
 protected:
 	virtual FPlayerMovementInfo* GetPlayerMovementInfo();

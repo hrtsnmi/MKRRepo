@@ -28,7 +28,11 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	void HandleClimbMovementInput(const FInputActionValue& Value);
+
 public:	
+
+	virtual void Move(const FInputActionValue& Value);
 
 	void OnClimbActionStarted(const FInputActionValue& Value);
 
