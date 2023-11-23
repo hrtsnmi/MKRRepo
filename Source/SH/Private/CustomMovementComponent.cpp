@@ -7,6 +7,19 @@
 #include "../DebugHelper.h"
 #include "Components/CapsuleComponent.h"
 
+void UCustomMovementComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	OwningPlayerAnimInstance = CharacterOwner->GetMesh()->GetAnimInstance();
+
+	if (OwningPlayerAnimInstance)
+	{
+		OwningPlayerAnimInstance->OnMontageEnded.AddDynamic(this, &UCustomMovementComponent::OnClimbMontageEnded);
+		OwningPlayerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &UCustomMovementComponent::OnClimbMontageEnded);
+	}
+}
+
 void UCustomMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -149,13 +162,14 @@ void UCustomMovementComponent::ToggleClimbing(bool bEnableClimb)
 		if (CanStartClimbing())
 		{
 			//Enter the climb state
-			StartClimbing();
+			PlayClimbMontage(IdleToClimbMontage);
 		}
 	}
 	else
 	{
 		//Stop climbing
-		StopClimbing();
+		//StopClimbing();
+		PlayClimbMontage(ClimbToIdleMontage);
 	}
 }
 
@@ -192,7 +206,8 @@ void UCustomMovementComponent::PhysClimb(float deltaTime, int32 Iterations)
 	/*Check if we should stop climbing*/
 	if (CheckShouldStopClimbing())
 	{
-		StopClimbing();
+		//StopClimbing();
+		PlayClimbMontage(ClimbToIdleMontage);
 	}
 
 	RestorePreAdditiveRootMotionVelocity();
@@ -317,6 +332,28 @@ FHitResult UCustomMovementComponent::TraceFromEyeHeight(float TraceDistance, flo
 	const FVector End = Start + UpdatedComponent->GetForwardVector() * TraceDistance;
 
 	return DoLineTraceSingleByObject(Start, End);
+}
+
+void UCustomMovementComponent::PlayClimbMontage(UAnimMontage* MontageToPlay)
+{
+	if (!MontageToPlay) return;
+	if (!OwningPlayerAnimInstance) return;
+	if (OwningPlayerAnimInstance->IsAnyMontagePlaying()) return;
+
+	OwningPlayerAnimInstance->Montage_Play(MontageToPlay);
+}
+
+void UCustomMovementComponent::OnClimbMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (Montage == IdleToClimbMontage)
+	{
+		StartClimbing();
+	}
+
+	if (Montage == ClimbToIdleMontage)
+	{
+		StopClimbing();
+	}
 }
 
 #pragma endregion

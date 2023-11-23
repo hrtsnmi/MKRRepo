@@ -21,6 +21,9 @@ public:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Reference, meta = (AllowPrivateAccess = "true"))
+		bool bIsClimbing;
+
 private:
 	UPROPERTY()
 		AClimbingSystemCharacter* ClimbingSystemCharacter;
@@ -43,4 +46,5 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Reference, meta = (AllowPrivateAccess = "true"))
 		bool bIsFallingClimb;
 	void GetIsFalling();
+	void GetIsClimbing();
 };

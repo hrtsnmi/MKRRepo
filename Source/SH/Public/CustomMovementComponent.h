@@ -18,6 +18,9 @@ namespace ECustomMovementMode
 	};
 }
 
+class UAnimMontage;
+class UAnimInstance;
+
 UCLASS()
 class SH_API UCustomMovementComponent : public UCharacterMovementComponent
 {
@@ -26,6 +29,8 @@ class SH_API UCustomMovementComponent : public UCharacterMovementComponent
 protected:
 
 #pragma region OverridenFunctions
+	virtual void BeginPlay() override;
+
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
@@ -49,6 +54,11 @@ private:
 	FQuat GetClimbRotation(float DeltaTime);
 
 	void SnapMovementToClimableSurfaces(float DeltaTime);
+
+	void PlayClimbMontage(UAnimMontage* MontageToPlay);
+
+	UFUNCTION()
+		void OnClimbMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 	
 	TArray<FHitResult> DoCapsuleTraceMultiByObject(const FVector& Start, const FVector& End, bool bShowDebugShape = false, bool bDrawPersistantShapes = false);
 	
@@ -74,6 +84,9 @@ private:
 
 	TArray<FHitResult> ClimbableSurfacesTracedResults;
 
+	UPROPERTY()
+		UAnimInstance* OwningPlayerAnimInstance; 
+	
 	FVector CurrentClimbableSurfaceLocation;
 
 	FVector CurrentClimbableSurfaceNormal;
@@ -99,6 +112,12 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character Movement: Climbing", meta = (AllowPrivateAccess = "true"))
 		float MaxClimbAcceleration = 300.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character Movement: Climbing", meta = (AllowPrivateAccess = "true"))
+		UAnimMontage* IdleToClimbMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character Movement: Climbing", meta = (AllowPrivateAccess = "true"))
+		UAnimMontage* ClimbToIdleMontage;
 
 #pragma endregion
 
