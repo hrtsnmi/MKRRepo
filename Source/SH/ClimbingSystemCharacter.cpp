@@ -7,6 +7,7 @@
 
 AClimbingSystemCharacter::AClimbingSystemCharacter()
 {
+	CustomMovementComponent = Cast<UCustomMovementComponent>(GetCharacterMovement());
 }
 
 // Sets default values
@@ -28,5 +29,16 @@ void AClimbingSystemCharacter::BeginPlay()
 
 void AClimbingSystemCharacter::OnClimbActionStarted(const FInputActionValue& Value)
 {
-	Debug::Print(TEXT("Climb action started"));
+	Debug::Print(TEXT("OnClimbActionStarted"));
+
+	if (!CustomMovementComponent) return;
+
+	if (!CustomMovementComponent->IsClimbing())
+	{
+		CustomMovementComponent->ToggleClimbing(true);
+	}
+	else
+	{
+		CustomMovementComponent->ToggleClimbing(false);
+	}
 }
