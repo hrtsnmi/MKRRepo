@@ -41,6 +41,15 @@ void AClimbingSystemCharacter::HandleClimbMovementInput(const FInputActionValue&
 	);
 
 	// add movement 
+
+	//auto* World = GetWorld();
+	//Debug::DrawDebugArrow(World, GetActorLocation(), ForwardDirection * MovementVector.Y, FColor::Red);
+	//Debug::DrawDebugArrow(World, GetActorLocation(), RightDirection * MovementVector.X, FColor::Red);
+
+	//FVector Direction = (ForwardDirection * MovementVector.Y) + (RightDirection * MovementVector.X);
+	//Direction.Normalize();
+	//Debug::DrawDebugArrow(World, GetActorLocation(), Direction, FColor::Blue);
+
 	AddMovementInput(ForwardDirection, MovementVector.Y);
 	AddMovementInput(RightDirection, MovementVector.X);
 }
@@ -65,9 +74,11 @@ void AClimbingSystemCharacter::OnClimbActionStarted(const FInputActionValue& Val
 	if (!CustomMovementComponent->IsClimbing())
 	{
 		CustomMovementComponent->ToggleClimbing(true);
+		bUseControllerRotationYaw = false;
 	}
 	else
 	{
 		CustomMovementComponent->ToggleClimbing(false);
+		bUseControllerRotationYaw = true;
 	}
 }

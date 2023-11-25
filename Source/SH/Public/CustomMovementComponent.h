@@ -37,6 +37,8 @@ protected:
 
 	virtual void PhysCustom(float deltaTime, int32 Iterations) override;
 
+	virtual FVector ConstrainAnimRootMotionVelocity(const FVector& RootMotionVelocity, const FVector& CurrentVelocity) const override;
+
 	virtual float GetMaxSpeed() const override;
 	virtual float GetMaxAcceleration() const override;
 
@@ -45,15 +47,23 @@ protected:
 private:
 
 #pragma region ClimbTraces
+	void SetOnwnerControlRotationYaw(bool bControlRotationYaw);
 
 	void PhysClimb(float deltaTime, int32 Iterations);
 	
 	void ProcessClimableSurfaceInfo();
+	
 	bool CheckShouldStopClimbing();
+
+	bool CheckHasReachedFloor();
 
 	FQuat GetClimbRotation(float DeltaTime);
 
+	bool TraceClimbableSurfaces();
+
 	void SnapMovementToClimableSurfaces(float DeltaTime);
+
+	bool CheckHasReachedLedge();
 
 	void PlayClimbMontage(UAnimMontage* MontageToPlay);
 
@@ -68,11 +78,11 @@ private:
 
 #pragma region ClimbCore
 
-	bool TraceClimbableSurfaces();
-
 	FHitResult TraceFromEyeHeight(float TraceDistance, float TraceStartOffset = 0.f);
 
 	bool CanStartClimbing();
+
+	bool CanClimbDownLedge();
 
 	void StartClimbing();
 
@@ -114,10 +124,22 @@ private:
 		float MaxClimbAcceleration = 300.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character Movement: Climbing", meta = (AllowPrivateAccess = "true"))
+		float ClimbDownWalkableSurfaceTraceOffset = 100.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character Movement: Climbing", meta = (AllowPrivateAccess = "true"))
+		float ClimbDownLedgeTraceOffset = 50.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character Movement: Climbing", meta = (AllowPrivateAccess = "true"))
 		UAnimMontage* IdleToClimbMontage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character Movement: Climbing", meta = (AllowPrivateAccess = "true"))
 		UAnimMontage* ClimbToIdleMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character Movement: Climbing", meta = (AllowPrivateAccess = "true"))
+		UAnimMontage* ClimbToTopMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character Movement: Climbing", meta = (AllowPrivateAccess = "true"))
+		UAnimMontage* ClimbDownLedgeMontage;
 
 #pragma endregion
 
@@ -126,4 +148,6 @@ public:
 	bool IsClimbing() const;
 
 	FORCEINLINE FVector GetClimbableSurfaceNormal() const { return CurrentClimbableSurfaceNormal; }
+
+	FVector GetUnrotatedClimbVelocity() const;
 };

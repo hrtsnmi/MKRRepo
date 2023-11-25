@@ -13,4 +13,9 @@ namespace Debug
 
 		UE_LOG(LogTemp, Warning, TEXT("%s"), *Msg);
 	}
+
+	static void DrawDebugArrow(UWorld* World, const FVector& Start, const FVector& Direction, const FColor& color, float time = -1.f)
+	{
+		DrawDebugDirectionalArrow(World, Start, Start+ Direction * 100.f, 50.f, color,false, time);
+	}
 }

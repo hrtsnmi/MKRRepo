@@ -47,4 +47,12 @@ private:
 		bool bIsFallingClimb;
 	void GetIsFalling();
 	void GetIsClimbing();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Reference, meta = (AllowPrivateAccess = "true"))
+		FVector ClimbVelocity;
+	void GetClimbVelocity();
+
+protected:
+	UFUNCTION(BlueprintCallable, meta = (BlueprintThreadSafe))
+		float CalculateDirectionZ(const FVector& Velocity, const FRotator& BaseRotation);
 };
