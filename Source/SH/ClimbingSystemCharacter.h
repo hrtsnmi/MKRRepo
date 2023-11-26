@@ -9,6 +9,7 @@
 
 
 class UCustomMovementComponent;
+class UMotionWarpingComponent;
 
 UCLASS()
 class SH_API AClimbingSystemCharacter : public ACharacter
@@ -18,6 +19,9 @@ class SH_API AClimbingSystemCharacter : public ACharacter
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 		UCustomMovementComponent* CustomMovementComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+		UMotionWarpingComponent* MotionWarpingComponent;
 
 public:
 	// Sets default values for this character's properties
@@ -38,4 +42,7 @@ public:
 
 
 	FORCEINLINE UCustomMovementComponent* GetCustomMovementComponent() const { return CustomMovementComponent; }
+
+	FORCEINLINE UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarpingComponent; }
+
 };

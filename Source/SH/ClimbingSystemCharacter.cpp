@@ -4,10 +4,12 @@
 #include "ClimbingSystemCharacter.h"
 #include "DebugHelper.h"
 #include "Public/CustomMovementComponent.h"
+#include "MotionWarping/Public/MotionWarpingComponent.h"
 
 AClimbingSystemCharacter::AClimbingSystemCharacter()
 {
 	CustomMovementComponent = Cast<UCustomMovementComponent>(GetCharacterMovement());
+	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComp"));
 }
 
 // Sets default values
@@ -16,6 +18,7 @@ AClimbingSystemCharacter::AClimbingSystemCharacter(const FObjectInitializer& Obj
 {
  	
 	CustomMovementComponent = Cast<UCustomMovementComponent>(GetCharacterMovement());
+	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComp"));
 }
 
 // Called when the game starts or when spawned
@@ -67,18 +70,16 @@ void AClimbingSystemCharacter::Move(const FInputActionValue& Value)
 
 void AClimbingSystemCharacter::OnClimbActionStarted(const FInputActionValue& Value)
 {
-	Debug::Print(TEXT("OnClimbActionStarted"));
+	//Debug::Print(TEXT("OnClimbActionStarted"));
 
 	if (!CustomMovementComponent) return;
 
 	if (!CustomMovementComponent->IsClimbing())
 	{
 		CustomMovementComponent->ToggleClimbing(true);
-		bUseControllerRotationYaw = false;
 	}
 	else
 	{
 		CustomMovementComponent->ToggleClimbing(false);
-		bUseControllerRotationYaw = true;
 	}
 }

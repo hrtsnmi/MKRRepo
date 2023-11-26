@@ -17,8 +17,8 @@ class SH_API AMotionWarpingCharacter : public AHideCharacter
 	GENERATED_BODY()
 	
 protected:
-	UPROPERTY(EditAnywhere, Category = "Warping Component", meta = (AllowPrivateAccess = "true"))
-		class UMotionWarpingComponent* WarpingComponent;
+	/*UPROPERTY(EditAnywhere, Category = "Warping Component", meta = (AllowPrivateAccess = "true"))
+		class UMotionWarpingComponent* WarpingComponent;*/
 	//Timer
 	FTimerHandle AfterVaultTH;
 

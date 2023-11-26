@@ -18,4 +18,9 @@ namespace Debug
 	{
 		DrawDebugDirectionalArrow(World, Start, Start+ Direction * 100.f, 50.f, color,false, time);
 	}
+
+	static void DrawSphere(UWorld* World, const FVector& Center, const FColor& color)
+	{
+		DrawDebugSphere(World, Center, 20.f, 20, color, false, 5.f);
+	}
 }

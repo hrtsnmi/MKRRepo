@@ -7,6 +7,7 @@
 #include "../DebugHelper.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "MotionWarping/Public/MotionWarpingComponent.h"
 
 void UCustomMovementComponent::BeginPlay()
 {
@@ -19,6 +20,8 @@ void UCustomMovementComponent::BeginPlay()
 		OwningPlayerAnimInstance->OnMontageEnded.AddDynamic(this, &UCustomMovementComponent::OnClimbMontageEnded);
 		OwningPlayerAnimInstance->OnMontageBlendingOut.AddDynamic(this, &UCustomMovementComponent::OnClimbMontageEnded);
 	}
+
+	OwningPlayerCharacter = Cast<AClimbingSystemCharacter>(CharacterOwner);
 }
 
 void UCustomMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -188,8 +191,13 @@ void UCustomMovementComponent::ToggleClimbing(bool bEnableClimb)
 			Debug::Print(TEXT("Can NOT climb down"), FColor::Red, 1);*/
 			PlayClimbMontage(ClimbDownLedgeMontage);
 		}
+		else
+		{
+			TryStartVaulting();
+		}
 	}
-	else
+	
+	if(!bEnableClimb)
 	{
 		//Stop climbing
 		//StopClimbing();
@@ -244,9 +252,9 @@ void UCustomMovementComponent::StopClimbing()
 
 void UCustomMovementComponent::SetOnwnerControlRotationYaw(bool bControlRotationYaw)
 {
-	if(ACharacter* Owner = Cast<ACharacter>(GetOwner()))
+	if(OwningPlayerCharacter)
 	{
-		Owner->bUseControllerRotationYaw = bControlRotationYaw;
+		OwningPlayerCharacter->bUseControllerRotationYaw = bControlRotationYaw;
 	}
 }
 
@@ -340,7 +348,7 @@ bool UCustomMovementComponent::CheckShouldStopClimbing()
 	{
 		return true;
 	}
-	Debug::Print(TEXT("Degree Diff: ") + FString::SanitizeFloat(DegreeDiff), FColor::Cyan, 1);
+	//Debug::Print(TEXT("Degree Diff: ") + FString::SanitizeFloat(DegreeDiff), FColor::Cyan, 1);
 
 	return false;
 }
@@ -425,6 +433,86 @@ bool UCustomMovementComponent::CheckHasReachedLedge()
 	return false;
 }
 
+void UCustomMovementComponent::TryStartVaulting()
+{
+	FVector VaultStartPosition;
+	FVector VaultLandPosition;
+	FVector VaultMidPosition;
+
+	if (CanStartVaulting(VaultStartPosition, VaultMidPosition, VaultLandPosition))
+	{
+		//Start vaulting
+		SetMotionWarpTarget(FName("VaultStartPoint"), VaultStartPosition);
+		SetMotionWarpTarget(FName("VMid"), VaultMidPosition);
+		SetMotionWarpTarget(FName("VaultEndPoint"), VaultLandPosition);
+
+		Debug::DrawSphere(GetWorld(), VaultStartPosition,FColor::Red);
+		Debug::DrawSphere(GetWorld(), VaultLandPosition, FColor::Blue);
+		Debug::DrawSphere(GetWorld(), VaultMidPosition, FColor::Yellow);
+
+		PlayClimbMontage(VaultMontage);
+
+		MovementMode = EMovementMode::MOVE_Flying;
+		OwningPlayerCharacter->SetActorEnableCollision(false);
+		SetOnwnerControlRotationYaw(false);
+	}
+}
+
+bool UCustomMovementComponent::CanStartVaulting(FVector& OutVaultStartPosition, FVector& OutVaultMidPosition, FVector& OutVaultLandPosition)
+{
+	if (IsFalling()) return false;
+
+	OutVaultStartPosition = FVector::ZeroVector;
+	OutVaultMidPosition = FVector::ZeroVector;
+	OutVaultLandPosition = FVector::ZeroVector;
+
+	const FVector ComponentLocation = UpdatedComponent->GetComponentLocation();
+	const FVector ComponentForward = UpdatedComponent->GetForwardVector();
+	const FVector UpVector = UpdatedComponent->GetUpVector();
+	const FVector DownVector = -UpdatedComponent->GetUpVector();
+
+	for (int32 i = 0; i < 5; i++)
+	{
+		float step = 80.f;
+
+		const FVector Start = ComponentLocation + UpVector * step / 2.f +
+			ComponentForward * step * (i + 1);
+
+		const FVector End = Start + DownVector * step * (i + 1);
+
+		FHitResult VaultTraceHit = DoLineTraceSingleByObject(Start, End);
+
+		if (i == 0 && VaultTraceHit.bBlockingHit)
+		{
+			OutVaultStartPosition = VaultTraceHit.ImpactPoint;
+		}
+
+		if (i == 2 && VaultTraceHit.bBlockingHit)
+		{
+			OutVaultMidPosition = VaultTraceHit.ImpactPoint;
+		}
+
+		if (i == 3 && VaultTraceHit.bBlockingHit)
+		{
+			OutVaultLandPosition = VaultTraceHit.ImpactPoint;
+		}
+	}
+
+	if (OutVaultStartPosition != FVector::ZeroVector && OutVaultLandPosition != FVector::ZeroVector)
+	{
+		if (OutVaultMidPosition == FVector::ZeroVector)
+		{
+			OutVaultMidPosition = OutVaultStartPosition + OwningPlayerCharacter->GetActorForwardVector() * 50.f;
+		}
+
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 bool UCustomMovementComponent::IsClimbing() const
 {
 	return MovementMode == MOVE_Custom && CustomMovementMode == ECustomMovementMode::MOVE_Climb;
@@ -477,11 +565,29 @@ void UCustomMovementComponent::OnClimbMontageEnded(UAnimMontage* Montage, bool b
 		SetOnwnerControlRotationYaw(true);
 	}
 
-	if (Montage == ClimbToTopMontage)
+	if (Montage == ClimbToTopMontage || Montage == VaultMontage)
 	{
 		SetMovementMode(MOVE_Walking);
 		SetOnwnerControlRotationYaw(true);
+		OwningPlayerCharacter->SetActorEnableCollision(true);
 	}
+}
+
+void UCustomMovementComponent::SetMotionWarpTarget(const FName& InWarpTargetName, const FVector& InTargetPosition)
+{
+	if (!OwningPlayerCharacter) return;
+
+	FMotionWarpingTarget Target;
+	Target.Name = InWarpTargetName;
+	Target.Location = InTargetPosition;
+	Target.Rotation = OwningPlayerCharacter->GetActorRotation();
+	OwningPlayerCharacter->GetMotionWarpingComponent()
+		->AddOrUpdateWarpTarget(Target);
+
+	/*OwningPlayerCharacter->GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromLocation(
+		InWarpTargetName,
+		InTargetPosition
+	);*/
 }
 
 FVector UCustomMovementComponent::GetUnrotatedClimbVelocity() const

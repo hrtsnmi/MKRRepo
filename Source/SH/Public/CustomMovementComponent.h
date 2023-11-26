@@ -20,6 +20,7 @@ namespace ECustomMovementMode
 
 class UAnimMontage;
 class UAnimInstance;
+class AClimbingSystemCharacter;
 
 UCLASS()
 class SH_API UCustomMovementComponent : public UCharacterMovementComponent
@@ -65,10 +66,16 @@ private:
 
 	bool CheckHasReachedLedge();
 
+	void TryStartVaulting();
+
+	bool CanStartVaulting(FVector& OutVaultStartPosition, FVector& OutVaultMidPosition, FVector& OutVaultLandPosition);
+
 	void PlayClimbMontage(UAnimMontage* MontageToPlay);
 
 	UFUNCTION()
 		void OnClimbMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
+	void SetMotionWarpTarget(const FName& InWarpTargetName, const FVector& InTargetPosition);
 	
 	TArray<FHitResult> DoCapsuleTraceMultiByObject(const FVector& Start, const FVector& End, bool bShowDebugShape = false, bool bDrawPersistantShapes = false);
 	
@@ -96,6 +103,9 @@ private:
 
 	UPROPERTY()
 		UAnimInstance* OwningPlayerAnimInstance; 
+
+	UPROPERTY()
+		AClimbingSystemCharacter* OwningPlayerCharacter;
 	
 	FVector CurrentClimbableSurfaceLocation;
 
@@ -140,6 +150,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character Movement: Climbing", meta = (AllowPrivateAccess = "true"))
 		UAnimMontage* ClimbDownLedgeMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character Movement: Climbing", meta = (AllowPrivateAccess = "true"))
+		UAnimMontage* VaultMontage;
 
 #pragma endregion
 
