@@ -31,10 +31,8 @@ protected:
 	virtual void Throw(const FInputActionValue& Value) override;
 	virtual void Interactive(const FInputActionValue& Value) override;
 
-	bool Vault(FVector& VStart, FVector& VMid, FVector& End);
 	void AfterVault();
 
-	virtual void Jump() override;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bEButtonPressed{ false };
 

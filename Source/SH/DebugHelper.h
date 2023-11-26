@@ -14,13 +14,21 @@ namespace Debug
 		UE_LOG(LogTemp, Warning, TEXT("%s"), *Msg);
 	}
 
-	static void DrawDebugArrow(UWorld* World, const FVector& Start, const FVector& Direction, const FColor& color, float time = -1.f)
+	static void DrawDebugArrow(UWorld* World, const FVector& Start, const FVector& Direction, const FColor& color, float time = -1.f, bool bUseDirection = true)
 	{
-		DrawDebugDirectionalArrow(World, Start, Start+ Direction * 100.f, 50.f, color,false, time);
+		if (bUseDirection)
+		{
+			DrawDebugDirectionalArrow(World, Start, Start + Direction * 100.f, 50.f, color, false, time);
+		}
+		else
+		{
+			DrawDebugDirectionalArrow(World, Start, Start + Direction, 50.f, color, false, time);
+		}
+		
 	}
 
 	static void DrawSphere(UWorld* World, const FVector& Center, const FColor& color)
 	{
-		DrawDebugSphere(World, Center, 20.f, 20, color, false, 5.f);
+		DrawDebugSphere(World, Center, 10.f, 20, color, false, 5.f);
 	}
 }

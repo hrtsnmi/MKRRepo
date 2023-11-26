@@ -26,7 +26,7 @@ public:
 protected:
 
 	/** Called for movement input */
-	virtual const FVector ReturnDirection(const FRotator& YawRotation, EAxis::Type coord) const;
+	virtual FVector ReturnDirection(const FRotator& YawRotation, EAxis::Type coord);
 
 public:
 	/** Called for looking input */

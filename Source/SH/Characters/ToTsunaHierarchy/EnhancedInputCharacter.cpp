@@ -53,8 +53,8 @@ void AEnhancedInputCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
 
 		//Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		EnhancedInputComponent->BindAction(ClimbAction, ETriggerEvent::Started, this, &AClimbingSystemCharacter::OnClimbActionStarted);
+		EnhancedInputComponent->BindAction(ClimbAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		//Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AEnhancedInputCharacter::Move);
@@ -69,6 +69,8 @@ void AEnhancedInputCharacter::SetupPlayerInputComponent(class UInputComponent* P
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &AEnhancedInputCharacter::CrouchSwitcher_Implementation);
 		//EnhancedInputComponent->BindAction(HideAction, ETriggerEvent::Started, this, &ACrouchCharacter::HideSwitcher_Implementation);
 
+		EnhancedInputComponent->BindAction(HideAction, ETriggerEvent::Started, this, &AEnhancedInputCharacter::HideSwitcher_Implementation);
+
 		//Throwing
 		EnhancedInputComponent->BindAction(ThrowAction, ETriggerEvent::Completed, this, &AEnhancedInputCharacter::Throw);
 		//Throwing
@@ -81,7 +83,6 @@ void AEnhancedInputCharacter::SetupPlayerInputComponent(class UInputComponent* P
 		EnhancedInputComponent->BindAction(EAction, ETriggerEvent::Started, this, &AEnhancedInputCharacter::Interactive);
 		EnhancedInputComponent->BindAction(EAction, ETriggerEvent::Completed, this, &AEnhancedInputCharacter::Interactive);
 	
-		EnhancedInputComponent->BindAction(ClimbAction, ETriggerEvent::Started, this, &AClimbingSystemCharacter::OnClimbActionStarted);
 	}
 }
 

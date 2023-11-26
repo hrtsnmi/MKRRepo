@@ -9,6 +9,9 @@
 /**
  * 
  */
+
+void TraceToCover(AActor* Owner, UWorld* Context, const FVector& TraceStart, const FVector& TraceEnd, FHitResult& TraceHit, FVector& UpdateLocation, const FName& Tag);
+
 UCLASS()
 class SH_API AHideCharacter : public ACrouchCharacter
 {
@@ -27,7 +30,18 @@ protected:
 
 protected:
 	/** Called for movement input */
-	virtual const FVector ReturnDirection(const FRotator& YawRotation, EAxis::Type coord) const override;
+	virtual FVector ReturnDirection(const FRotator& YawRotation, EAxis::Type coord) override;
+
+private:
+	void SutUpHideBorders(const FVector& CoverLocation);
+	void UpdateBorderLocation(bool bUpdateRightBorder);
+
+	UPROPERTY() FVector LeftEndPoint { FVector::UpVector };
+	UPROPERTY() FVector RightEndPoint { FVector::UpVector };
+	UPROPERTY() FVector Right;
+	UPROPERTY() FVector CoverNormal;
+	UPROPERTY() FVector DistanceToCover;
+	UPROPERTY(EditAnywhere, Category = "Player Movement|Hide") FVector AttachLocation;
 
 protected:
 	UFUNCTION()
@@ -35,11 +49,6 @@ protected:
 
 	UFUNCTION()
 		void BoxComponentEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-	UPROPERTY() FVector LeftEndPoint { FVector::UpVector };
-	UPROPERTY() FVector RightEndPoint { FVector::UpVector };
-	UPROPERTY() FVector Right;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player Movement|Hide") FVector AttachLocation;
 
 	bool bCanHide{ false };
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player Movement|Info")

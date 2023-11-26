@@ -456,6 +456,10 @@ void UCustomMovementComponent::TryStartVaulting()
 		OwningPlayerCharacter->SetActorEnableCollision(false);
 		SetOnwnerControlRotationYaw(false);
 	}
+	else
+	{
+		OwningPlayerCharacter->Jump();
+	}
 }
 
 bool UCustomMovementComponent::CanStartVaulting(FVector& OutVaultStartPosition, FVector& OutVaultMidPosition, FVector& OutVaultLandPosition)

@@ -56,7 +56,7 @@ void ASHCharacter::BeginPlay()
 }
 
 
-const FVector ASHCharacter::ReturnDirection(const FRotator& YawRotation, EAxis::Type coord) const
+FVector ASHCharacter::ReturnDirection(const FRotator& YawRotation, EAxis::Type coord)
 {
 	// TODO: insert return statement here
 	switch (coord)
