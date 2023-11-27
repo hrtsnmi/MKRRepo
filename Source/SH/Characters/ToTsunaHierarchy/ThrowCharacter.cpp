@@ -61,8 +61,6 @@ void AThrowCharacter::RemoveParticlePath(const FInputActionValue& Value)
 
 void AThrowCharacter::Throw(const FInputActionValue& Value)
 {
-	//ClearSpline(SplineMeshes, KnifeSpline);
-	
 	if (SpawnTimeline->IsActive()) return;
 	
 	if (bWasThrown)
@@ -99,6 +97,9 @@ void AThrowCharacter::Throw(const FInputActionValue& Value)
 				}
 			}), throwingTime, false);
 		bWasThrown = true;
+
+		ClearSpline(SplineMeshes, KnifeSpline);
+		EndSpline->SetVisibility(false);
 	}
 }
 
