@@ -24,8 +24,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Warping Component", meta = (AllowPrivateAccess = "true"))
 		UAnimMontage* KillMontage;
-	UPROPERTY(EditAnywhere, Category = "Warping Component", meta = (AllowPrivateAccess = "true"))
-		UAnimMontage* VaultMontage;
 
 protected:
 	virtual void Throw(const FInputActionValue& Value) override;

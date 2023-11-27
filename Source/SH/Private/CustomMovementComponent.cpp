@@ -575,6 +575,11 @@ void UCustomMovementComponent::OnClimbMontageEnded(UAnimMontage* Montage, bool b
 		SetOnwnerControlRotationYaw(true);
 		OwningPlayerCharacter->SetActorEnableCollision(true);
 	}
+
+	if (Montage == TurnMontage)
+	{
+
+	}
 }
 
 void UCustomMovementComponent::SetMotionWarpTarget(const FName& InWarpTargetName, const FVector& InTargetPosition)
@@ -587,11 +592,21 @@ void UCustomMovementComponent::SetMotionWarpTarget(const FName& InWarpTargetName
 	Target.Rotation = OwningPlayerCharacter->GetActorRotation();
 	OwningPlayerCharacter->GetMotionWarpingComponent()
 		->AddOrUpdateWarpTarget(Target);
+}
 
-	/*OwningPlayerCharacter->GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromLocation(
-		InWarpTargetName,
-		InTargetPosition
-	);*/
+void UCustomMovementComponent::PlayTurnMontage(const FName& MontageSlot)
+{
+	if (!TurnMontage) return;
+	if (!OwningPlayerAnimInstance) return;
+	if (OwningPlayerAnimInstance->IsAnyMontagePlaying()) return;
+
+	OwningPlayerCharacter->PlayAnimMontage(TurnMontage, 1.0f, MontageSlot);
+	//OwningPlayerAnimInstance->Montage_Play()
+}
+
+bool UCustomMovementComponent::IsActiveMontage() const
+{
+	return OwningPlayerAnimInstance->IsAnyMontagePlaying();
 }
 
 FVector UCustomMovementComponent::GetUnrotatedClimbVelocity() const

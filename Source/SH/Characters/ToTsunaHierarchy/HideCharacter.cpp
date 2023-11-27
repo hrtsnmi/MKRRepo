@@ -4,6 +4,7 @@
 #include "HideCharacter.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "../Public/CustomMovementComponent.h"
 //#include "DrawDebugHelpers.h"
 #include "../DebugHelper.h"
 
@@ -13,6 +14,87 @@ void AHideCharacter::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	GoToCoverWhileHit();
+}
+
+void AHideCharacter::Move(const FInputActionValue& Value)
+{
+	if (HideState == EHideStates::Hide)
+	{
+		if (GetCustomMovementComponent()->IsActiveMontage())
+		{
+			return;
+		}
+
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		const FVector ForwardDirection = ReturnDirection(YawRotation, EAxis::X);
+		const FVector RightDirection = ReturnDirection(YawRotation, EAxis::Y);
+		// add movement 
+		const FVector ResultDirection =
+			ForwardDirection * Value.Get<FVector2D>().Y + RightDirection * Value.Get<FVector2D>().X;
+		const float dotResult = FVector::DotProduct(Right, ResultDirection);
+		DrawDebugDirectionalArrow(GetWorld(), GetActorLocation(), GetActorLocation() + YawRotation.Vector() * 50.f, 20, FColor::Magenta);
+
+		const float dotForMontage = FVector::DotProduct(GetActorForwardVector(), YawRotation.Vector());
+
+		if (dotForMontage < 0.f)
+		{
+			const float dotSelectTurnLeft = FVector::DotProduct(CoverNormal, GetActorRightVector());
+
+			if (dotSelectTurnLeft > 0.f)
+			{
+				GetCustomMovementComponent()->PlayTurnMontage("TurnRight");
+			}
+			else
+			{
+				GetCustomMovementComponent()->PlayTurnMontage();
+			}
+
+			return;
+		}
+
+		const bool UseRight = (dotResult > 0.f);
+		UpdateBorderLocation(UseRight);
+
+		if (UseRight)
+		{
+			BoxRight->SetActorLocation(RightEndPoint);
+		}
+		else
+		{
+			BoxLeft->SetActorLocation(LeftEndPoint);
+		}
+
+		TArray<AActor*> borders;
+		bool bCanMove = true;
+		GetOverlappingActors(borders, Border);
+		if (borders.Num() > 0)
+		{
+			const AActor* border = *borders.begin();
+
+			if (border == BoxRight)
+			{
+				Debug::Print(*border->GetName(), FColor::Red, 1);
+				bCanMove = !UseRight;
+			}
+
+			if (border == BoxLeft)
+			{
+				Debug::Print(*border->GetName(), FColor::Red, 2);
+				bCanMove = UseRight;
+			}
+		}
+
+		if (bCanMove)
+		{
+			AddMovementInput(ForwardDirection, Value.Get<FVector2D>().Y);
+			AddMovementInput(RightDirection, Value.Get<FVector2D>().X);
+		}
+
+		return;
+	}
+
+	Super::Move(Value);
 }
 
 AHideCharacter::AHideCharacter()
@@ -28,14 +110,15 @@ void AHideCharacter::BeginPlay()
 
 	BoxComp->OnComponentBeginOverlap.AddDynamic(this, &AHideCharacter::BoxComponentBeginOverlap);
 	BoxComp->OnComponentEndOverlap.AddDynamic(this, &AHideCharacter::BoxComponentEndOverlap);
+	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AHideCharacter::OnCapsuleHit);
 }
 
 void AHideCharacter::BoxComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	//BoxComp->OnComponentEndOverlap.AddDynamic(this, &ACrouchCharacter::BoxComponentEndOverlap);
 	if (!OtherActor ||
-		this == OtherActor ||
-		!OtherActor->ActorHasTag(SeatchTag))
+		this == OtherActor)// ||
+		//!OtherActor->ActorHasTag(SeatchTag))
 		return;
 
 	SutUpHideBorders(OtherActor->GetActorLocation());
@@ -74,38 +157,10 @@ void AHideCharacter::HideSwitcher_Implementation(const FInputActionValue& Value)
 	switch (HideState)
 	{
 	case EHideStates::Hide:
-		HideState = EHideStates::Visible;
-		BoxComp->OnComponentBeginOverlap.AddDynamic(this, &AHideCharacter::BoxComponentBeginOverlap);
-		BoxComp->OnComponentEndOverlap.AddDynamic(this, &AHideCharacter::BoxComponentEndOverlap);
-		bCanHide = false;
-		bNeedToReachCover = false;
-		if (Box1)
-		{
-			Box1->Destroy();
-			Box1 = nullptr;
-		}
-		if (Box2)
-		{
-			Box2->Destroy();
-			Box2 = nullptr;
-		}
-		GetCapsuleComponent()->OnComponentHit.RemoveAll(this);
-		bUseControllerRotationYaw = true;
+		FromHide();
 		break;
 	case EHideStates::Visible:
-		HideState = EHideStates::Hide;
-		BoxComp->OnComponentBeginOverlap.RemoveAll(this);
-		BoxComp->OnComponentEndOverlap.RemoveAll(this);
-		//bNeedToReachCover = true;
-		if (Border)
-		{
-			Box1 = GetWorld()->SpawnActor<AActor>(Border, RightEndPoint + DistanceToCover, Right.Rotation());
-			Box2 = GetWorld()->SpawnActor<AActor>(Border, LeftEndPoint + DistanceToCover, Right.Rotation());
-		}
-		AttachLocation = GetActorLocation() - DistanceToCover;
-		GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AHideCharacter::OnCapsuleHit);
-
-		bUseControllerRotationYaw = false;
+		ToHide();
 		break;
 	default:
 		break;
@@ -122,28 +177,24 @@ EHideStates AHideCharacter::ReciveHideData_Implementation()
 	return HideState;
 }
 
-FVector AHideCharacter::ReturnDirection(const FRotator& YawRotation, EAxis::Type coord)
+const FVector AHideCharacter::ReturnDirection(const FRotator& YawRotation, EAxis::Type coord) const
 {
 	// TODO: insert return statement here
-	if (HideState == EHideStates::Hide)
+    if (HideState == EHideStates::Hide)
 	{
 		const float dotResult = FVector::DotProduct(FRotationMatrix(YawRotation).GetUnitAxis(coord), Right);
-
+		FVector Result;
 		switch (coord)
 		{
 		case EAxis::X:
 		case EAxis::Y:
-			return dotResult * Right;;
+			Result = dotResult * Right;
+			break;
 		default:
-			return FVector::ZeroVector;
 			break;
 		}
 
-		UpdateBorderLocation((dotResult > 0.f));
-
-		FlushPersistentDebugLines(GetWorld());
-		Debug::DrawSphere(GetWorld(), RightEndPoint, FColor::Black);
-		Debug::DrawSphere(GetWorld(), LeftEndPoint, FColor::Green);
+		return Result;
 	}
 	else
 	{
@@ -158,10 +209,9 @@ void AHideCharacter::SutUpHideBorders(const FVector& CoverLocation)
 	FHitResult HitCover;
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(this);
-	ECollisionChannel FindCollision = ECollisionChannel::ECC_WorldStatic;
 
 	world->LineTraceSingleByObjectType(HitCover, GetActorLocation(), CoverLocation,
-		{ FindCollision }, QueryParams);
+		{ FindCollision.GetValue()}, QueryParams);
 
 	CoverNormal = HitCover.Normal;
 	DistanceToCover = CoverNormal * FVector::DotProduct(CoverNormal, HitCover.ImpactPoint - GetActorLocation());
@@ -181,7 +231,7 @@ void AHideCharacter::SutUpHideBorders(const FVector& CoverLocation)
 		StartLocation.Z -= verticalStep * i;
 
 		bIsGoodCover = world->LineTraceSingleByObjectType(HitCover, StartLocation, StartLocation - DistanceToCover,
-			{ FindCollision }, QueryParams);
+			{ FindCollision.GetValue() }, QueryParams);
 	}
 
 	UpdateBorderLocation(true);
@@ -204,19 +254,27 @@ void AHideCharacter::UpdateBorderLocation(bool bUpdateRightBorder)
 	Right.Normalize();
 	//Debug::DrawDebugArrow(world, GetActorLocation(), Right, FColor::Red, 5.f);
 
+	FHitResult HitCover;
+
 	const FVector StartPoint = GetActorLocation() + DistanceToCover;
 	//Debug::DrawSphere(world, StartPoint, FColor::White);
 
+	FVector NewLocation = FVector::ZeroVector;
+	TraceToCover(this, GetWorld(), GetActorLocation(), StartPoint, HitCover,
+		NewLocation, SeatchTag, FindCollision.GetValue());
+	if (NewLocation == FVector::ZeroVector)
+	{
+		return;
+	}
+
 	if (bUpdateRightBorder)
 	{
-		RightEndPoint = StartPoint;
+		RightEndPoint = NewLocation;
 	}
 	else
 	{
-		LeftEndPoint = StartPoint;
+		LeftEndPoint = NewLocation;
 	}
-
-	FHitResult HitCover;
 
 	FVector EndPoint;
 
@@ -243,9 +301,52 @@ void AHideCharacter::UpdateBorderLocation(bool bUpdateRightBorder)
 		if (currDistance < distance)
 		{
 			TraceToCover(this, GetWorld(), GetActorLocation(), EndPoint, HitCover,
-				bUpdateRightBorder ? (RightEndPoint) : (LeftEndPoint), SeatchTag);
+				bUpdateRightBorder ? (RightEndPoint) : (LeftEndPoint), SeatchTag, FindCollision.GetValue());
 		}
 	}
+}
+
+void AHideCharacter::ToHide()
+{
+	HideState = EHideStates::Hide;
+	BoxComp->OnComponentBeginOverlap.RemoveAll(this);
+	BoxComp->OnComponentEndOverlap.RemoveAll(this);
+	//bNeedToReachCover = true;
+	if (Border)
+	{
+		BoxRight = GetWorld()->SpawnActor<AActor>(Border, RightEndPoint - DistanceToCover, Right.Rotation());
+		BoxLeft = GetWorld()->SpawnActor<AActor>(Border, LeftEndPoint - DistanceToCover, Right.Rotation());
+	}
+	AttachLocation = GetActorLocation() - DistanceToCover;
+	bUseControllerRotationYaw = false;
+	GetCustomMovementComponent()->bUseSeparateBrakingFriction = false;
+
+	const float dotForMontage = FVector::DotProduct(GetActorForwardVector(), Right);
+
+	SetActorRotation(dotForMontage > 0.f ? Right.Rotation() : (-Right).Rotation());
+}
+
+void AHideCharacter::FromHide()
+{
+	HideState = EHideStates::Visible;
+	BoxComp->OnComponentBeginOverlap.AddDynamic(this, &AHideCharacter::BoxComponentBeginOverlap);
+	BoxComp->OnComponentEndOverlap.AddDynamic(this, &AHideCharacter::BoxComponentEndOverlap);
+	bCanHide = false;
+	bNeedToReachCover = false;
+	if (BoxRight)
+	{
+		BoxRight->Destroy();
+		BoxRight = nullptr;
+	}
+	if (BoxLeft)
+	{
+		BoxLeft->Destroy();
+		BoxLeft = nullptr;
+	}
+	bUseControllerRotationYaw = true;
+	GetCustomMovementComponent()->bUseSeparateBrakingFriction = true;
+
+	DistanceToCover = CoverNormal = Right = RightEndPoint = LeftEndPoint = FVector::UpVector;
 }
 
 void AHideCharacter::OnCapsuleHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -261,11 +362,11 @@ void AHideCharacter::OnCapsuleHit(UPrimitiveComponent* HitComp, AActor* OtherAct
 	}
 }
 
-void TraceToCover(AActor* Owner, UWorld* Context, const FVector& TraceStart, const FVector& TraceEnd, FHitResult& TraceHit, FVector& UpdateLocation, const FName& Tag)
+void TraceToCover(AActor* Owner, UWorld* Context, const FVector& TraceStart, const FVector& TraceEnd,
+	FHitResult& TraceHit, FVector& UpdateLocation, const FName& Tag, ECollisionChannel FindCollision)
 {
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(Owner);
-	ECollisionChannel FindCollision = ECollisionChannel::ECC_WorldStatic;
 
 	bool bIsNotCoverEnd = Context->LineTraceSingleByObjectType(TraceHit, TraceStart, TraceEnd,
 		{ FindCollision }, QueryParams);

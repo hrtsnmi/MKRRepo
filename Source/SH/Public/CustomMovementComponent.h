@@ -154,6 +154,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character Movement: Climbing", meta = (AllowPrivateAccess = "true"))
 		UAnimMontage* VaultMontage;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character Movement: Climbing", meta = (AllowPrivateAccess = "true"))
+		UAnimMontage* TurnMontage;
+
 #pragma endregion
 
 public:
@@ -161,6 +164,9 @@ public:
 	bool IsClimbing() const;
 
 	FORCEINLINE FVector GetClimbableSurfaceNormal() const { return CurrentClimbableSurfaceNormal; }
+
+	void PlayTurnMontage(const FName& MontageSlot = "Default");
+	bool IsActiveMontage() const;
 
 	FVector GetUnrotatedClimbVelocity() const;
 };

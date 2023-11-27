@@ -10,7 +10,8 @@
  * 
  */
 
-void TraceToCover(AActor* Owner, UWorld* Context, const FVector& TraceStart, const FVector& TraceEnd, FHitResult& TraceHit, FVector& UpdateLocation, const FName& Tag);
+void TraceToCover(AActor* Owner, UWorld* Context, const FVector& TraceStart, const FVector& TraceEnd,
+	FHitResult& TraceHit, FVector& UpdateLocation, const FName& Tag, ECollisionChannel FindCollision);
 
 UCLASS()
 class SH_API AHideCharacter : public ACrouchCharacter
@@ -30,18 +31,26 @@ protected:
 
 protected:
 	/** Called for movement input */
-	virtual FVector ReturnDirection(const FRotator& YawRotation, EAxis::Type coord) override;
+	virtual const FVector ReturnDirection(const FRotator& YawRotation, EAxis::Type coord) const override;
 
 private:
 	void SutUpHideBorders(const FVector& CoverLocation);
 	void UpdateBorderLocation(bool bUpdateRightBorder);
+
+	void ToHide();
+	void FromHide();
 
 	UPROPERTY() FVector LeftEndPoint { FVector::UpVector };
 	UPROPERTY() FVector RightEndPoint { FVector::UpVector };
 	UPROPERTY() FVector Right;
 	UPROPERTY() FVector CoverNormal;
 	UPROPERTY() FVector DistanceToCover;
+	bool bReachRightBorder{ false };
+	bool bReachLeftBorder{ false };
 	UPROPERTY(EditAnywhere, Category = "Player Movement|Hide") FVector AttachLocation;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character Movement: Climbing", meta = (AllowPrivateAccess = "true"))
+		TEnumAsByte<ECollisionChannel> FindCollision;
 
 protected:
 	UFUNCTION()
@@ -62,8 +71,8 @@ protected:
 	UFUNCTION()
 		void OnCapsuleHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
-	UPROPERTY() AActor* Box1;
-	UPROPERTY() AActor* Box2;
+	UPROPERTY() AActor* BoxRight;
+	UPROPERTY() AActor* BoxLeft;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Player Movement|Hide")
 		TSubclassOf<AActor> Border;
@@ -79,4 +88,6 @@ public:
 
 
 	void Tick(float DeltaSeconds);
+
+	virtual void Move(const FInputActionValue& Value) override;
 };
