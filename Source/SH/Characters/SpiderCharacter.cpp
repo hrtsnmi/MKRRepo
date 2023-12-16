@@ -153,14 +153,14 @@ void ASpiderCharacter::DrawDebugElements() const
 
 	//Zones
 	const FVector& PSPRef = ProjectileSpawnPoint->GetComponentLocation();
-	DrawDebugSphere(ThisWorld, PSPRef,
+	/*DrawDebugSphere(ThisWorld, PSPRef,
 		NotRangeRadius1, 10, FColor::Red);
 	DrawDebugSphere(ThisWorld, PSPRef,
 		NotRangeRadius2, 100, FColor::Red);
 
 	DrawDebugSphere(ThisWorld, PSPRef,
 		RangeRadius,
-		100, FColor::Green);
+		100, FColor::Green);*/
 
 	// Points of:
 	//Projectile Spawn Point
@@ -340,12 +340,12 @@ void ASpiderCharacter::PrepareFutureHitPoint(AActor* Target, FVector& OutToShoot
 		{
 			SetNewAnimPitch(true);
 
-			if (GEngine)
+			/*if (GEngine)
 			{
 				GEngine->AddOnScreenDebugMessage(2, 5.0f, FColor::Yellow,
 					FString::Printf(TEXT("target is in air %f, but need %f"),
 						TimeWhenProjectileIsOnFly, ballisticTime));
-			}
+			}*/
 			return;
 		}
 		else if (leftBorder && rightBorder) //check if Character height is in range of parabolic trajectory
@@ -361,7 +361,7 @@ void ASpiderCharacter::PrepareFutureHitPoint(AActor* Target, FVector& OutToShoot
 		}
 		else if ((t1 == 0.0) && (t1 == 0.0))
 		{
-			AnimPitch = 0.8f;
+			AnimPitch = 0.9f;
 			//return;
 		}
 

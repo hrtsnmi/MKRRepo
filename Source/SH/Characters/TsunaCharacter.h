@@ -11,5 +11,4 @@ class SH_API ATsunaCharacter : public AMotionWarpingCharacter
 {
 	GENERATED_BODY()
 
-
 };

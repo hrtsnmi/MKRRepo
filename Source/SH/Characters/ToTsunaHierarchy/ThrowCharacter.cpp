@@ -108,6 +108,8 @@ void AThrowCharacter::Throw(const FInputActionValue& Value)
 
 		ClearSpline(SplineMeshes, KnifeSpline);
 		EndSpline->SetVisibility(false);
+
+		Knife->SetVisibility(false);
 	}
 }
 
@@ -186,6 +188,8 @@ void AThrowCharacter::SpawnKnifeBack(const FInputActionValue& Value)
 		{
 			NS_LeakParticles->Deactivate();
 		}), 0.4f, false);
+
+	Knife->SetVisibility(true);
 }
 
 void AThrowCharacter::HandleSpawnProgress(float Value)
@@ -216,6 +220,8 @@ void AThrowCharacter::SpawnTimelineFinishedFunction()
 			//GetController()->SetActorRotation(FNewRotator);
 		}
 		SpawnTimeline->Reverse();
+
+		Knife->SetVisibility(true);
 
 		if (OnCharacterDisappearDelegate.IsBound())
 		{
