@@ -80,3 +80,22 @@ void AAIEnemyController::AfterTargetTeleports()
 		BB->SetValueAsBool(LostRecently, true);
 	}
 }
+
+void AAIEnemyController::SetDetectKnife(const FVector& TargetLocation)
+{
+	UBlackboardComponent* BB = GetBlackboardComponent();
+	if (BB)
+	{
+		BB->SetValueAsBool(DetectKnife, true);
+		BB->SetValueAsVector(KnifeLocation, TargetLocation);
+	}
+}
+
+void AAIEnemyController::LostKnife()
+{
+	UBlackboardComponent* BB = GetBlackboardComponent();
+	if (BB)
+	{
+		BB->SetValueAsBool(DetectKnife, false);
+	}
+}

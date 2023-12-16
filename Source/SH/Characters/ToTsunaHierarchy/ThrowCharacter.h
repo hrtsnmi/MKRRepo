@@ -80,6 +80,18 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Knife", meta = (AllowPrivateAccess = "true"))
 		TSubclassOf<AQuantumtKnife> KnifeProj;
 
+	//for camera
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Knife|Offset", meta = (AllowPrivateAccess = "true"))
+		FVector AIMData {
+		FVector(0.f, 100.f, 100.f)
+	};
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Knife|Offset", meta = (AllowPrivateAccess = "true"))
+		float AimOfset{ 200.f };
+
+	FVector PrevCameraData{ };
+	float PrevAimOfset{ };
+	bool bIsAim{ false };
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -105,4 +117,8 @@ protected:
 public:
 	//for AI
 	FCharacterDisappearSignature OnCharacterDisappearDelegate;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ExposeOnSpawn = true), Category = "Throw|Speed")
+		float StartSpeed{ 2000.f };
 };

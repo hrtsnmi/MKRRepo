@@ -4,6 +4,8 @@
 #include "EnemyCharacter.h"
 #include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
+#include "../AI/AIEnemyController.h"
+#include "../QuantumtKnife.h"
 
 AEnemyCharacter::AEnemyCharacter()
 {
@@ -38,6 +40,19 @@ bool AEnemyCharacter::UnderAttack_Implementation()
 FTransform AEnemyCharacter::GetPreUnderAttack_Implementation()
 {
 	return StartPlace->GetComponentTransform();
+}
+
+void AEnemyCharacter::SetKnifeLocation_Implementation(AQuantumtKnife* Target)
+{
+	if (AAIEnemyController* AIController = Cast<AAIEnemyController>(GetController()))
+	{
+		AIController->SetDetectKnife(Target->GetActorLocation());
+			
+		if (!Target->OnActorDestroyDelegate.IsBoundToObject(AIController))
+		{
+			Target->OnActorDestroyDelegate.AddUObject(AIController, &AAIEnemyController::LostKnife);
+		}
+	}
 }
 
 

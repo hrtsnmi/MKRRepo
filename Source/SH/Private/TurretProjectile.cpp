@@ -36,6 +36,8 @@ void ATurretProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 	
+
+	SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ATurretProjectile::BeginOverlap);
 }
 
 // Called every frame

@@ -10,6 +10,7 @@
 #include "NiagaraComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "DrawDebugHelpers.h"
+#include "../Interfaces/KnifeDetectInterface.h"
 
 void AQuantumtKnife::BeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -48,6 +49,39 @@ void AQuantumtKnife::BeginPlay()
 	
 }
 
+void AQuantumtKnife::MakeLight()
+{
+	//DrawDebugSphere(GetWorld(), GetActorLocation(), 500.f, 24, FColor::Red);
+
+	TArray<FHitResult> OutSphereTraceHitResults;
+
+	EDrawDebugTrace::Type DebugTraceType = bShowDebugShape ? (EDrawDebugTrace::ForOneFrame) : (EDrawDebugTrace::None);
+
+	UKismetSystemLibrary::SphereTraceMultiForObjects(
+		this,
+		GetActorLocation(), GetActorLocation(),
+		500.f,
+		EnemyTraceTypes,
+		false,
+		TArray<AActor*>(),
+		DebugTraceType,
+		OutSphereTraceHitResults,
+		false
+	);
+
+	if (OutSphereTraceHitResults.IsEmpty()) return;
+
+	for (const FHitResult& HitTarget : OutSphereTraceHitResults)
+	{
+		if (HitTarget.GetActor() != nullptr &&
+			HitTarget.GetActor()->GetClass()->ImplementsInterface(UKnifeDetectInterface::StaticClass()))
+		{
+
+			IKnifeDetectInterface::Execute_SetKnifeLocation(HitTarget.GetActor(), this);
+		}
+	}
+}
+
 // Called every frame
 void AQuantumtKnife::Tick(float DeltaTime)
 {
@@ -57,10 +91,7 @@ void AQuantumtKnife::Tick(float DeltaTime)
 	//SetActorRotation(GetVelocity().Rotation());
 
 	
-	DrawDebugSphere(GetWorld(), GetActorLocation(), 500.f, 24, FColor::Red);
-
-	
-	
+	MakeLight();
 }
 
 void AQuantumtKnife::UseTimeLineParticle(const FString& ParamaterName, float Value)
@@ -79,6 +110,15 @@ void AQuantumtKnife::ActivateParticle(bool bActivate)
 		NS_LeakParticlesProj->Deactivate();
 	}
 
+}
+
+void AQuantumtKnife::BeginDestroy()
+{
+	OnActorDestroyDelegate.Broadcast();
+
+	OnActorDestroyDelegate.Clear();
+
+	Super::BeginDestroy();
 }
 
 float& AQuantumtKnife::AddOwnerSpeed()

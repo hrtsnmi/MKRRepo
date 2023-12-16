@@ -3,10 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ToTsunaHierarchy/NiagaraCharacter.h"
+#include "../SHCharacter.h"
 #include "../Interfaces/FollowPatrolPathInterface.h"
 #include "../Interfaces/CanBeAttackInterface.h"
 #include "../Interfaces/FollowPatrolPathInterface.h"
+#include "../Interfaces/KnifeDetectInterface.h"
 #include "Engine/TargetPoint.h"
 #include "EnemyCharacter.generated.h"
 
@@ -15,9 +16,10 @@
  */
 
 UCLASS()
-class SH_API AEnemyCharacter : public ANiagaraCharacter,
+class SH_API AEnemyCharacter : public ASHCharacter,
 	public IFollowPatrolPathInterface,
-	public ICanBeAttackInterface
+	public ICanBeAttackInterface,
+	public IKnifeDetectInterface
 {
 	GENERATED_BODY()
 	
@@ -63,5 +65,7 @@ protected:
 public:
 	bool UnderAttack_Implementation();
 	FTransform GetPreUnderAttack_Implementation();
+
+	void SetKnifeLocation_Implementation(class AQuantumtKnife* Target);
 
 };
