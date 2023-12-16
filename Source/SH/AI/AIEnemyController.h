@@ -57,6 +57,17 @@ public:
 	};
 
 	UPROPERTY(EditDefaultsOnly, Category = "Enemy Data")
+		FName DetectKnife {
+		FName("DetectKnife")
+	};
+
+	UPROPERTY(EditDefaultsOnly, Category = "Enemy Data")
+		FName KnifeLocation {
+		FName("TargetLocation")
+	};
+	
+
+	UPROPERTY(EditDefaultsOnly, Category = "Enemy Data")
 		FName LostRecently {
 		FName("LostRecently")
 	};
@@ -69,4 +80,7 @@ public:
 		void PerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 
 	UFUNCTION() void AfterTargetTeleports();
+
+	UFUNCTION() void SetDetectKnife(const FVector& TargetLocation);
+	UFUNCTION() void LostKnife();
 };

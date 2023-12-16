@@ -14,6 +14,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Components/SplineComponent.h"
 #include "NiagaraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 
 AThrowCharacter::AThrowCharacter()
 {
@@ -57,6 +58,13 @@ void AThrowCharacter::RemoveParticlePath(const FInputActionValue& Value)
 {
 	ClearSpline(SplineMeshes, KnifeSpline);
 	EndSpline->SetVisibility(false);
+
+	GetCameraBoom()->SocketOffset = PrevCameraData;
+	GetCameraBoom()->TargetArmLength = PrevAimOfset;
+
+	bIsAim = false;
+	/*PrevAimOfset = GetCameraBoom()->TargetArmLength;
+	PrevCameraData = GetCameraBoom()->SocketOffset;*/
 }
 
 void AThrowCharacter::Throw(const FInputActionValue& Value)
@@ -92,7 +100,7 @@ void AThrowCharacter::Throw(const FInputActionValue& Value)
 					(KnifeProj, ThownTransform, this);
 				if (ThownProjectile)
 				{
-					ThownProjectile->AddOwnerSpeed() = CurrCharacterSpeed + ThownProjectile->StartSpeed;
+					ThownProjectile->AddOwnerSpeed() = CurrCharacterSpeed + StartSpeed;
 					ThownProjectile->FinishSpawning(ThownTransform);
 				}
 			}), throwingTime, false);
@@ -100,6 +108,8 @@ void AThrowCharacter::Throw(const FInputActionValue& Value)
 
 		ClearSpline(SplineMeshes, KnifeSpline);
 		EndSpline->SetVisibility(false);
+
+		Knife->SetVisibility(false);
 	}
 }
 
@@ -121,7 +131,7 @@ void AThrowCharacter::ShowParticlePath(const FInputActionValue& Value)
 	FPredictProjectilePathResult PredictResult;
 
 	PredictParams.StartLocation = WorldSpawnLocation;
-	PredictParams.LaunchVelocity = 1000.f * WhereCharacterLooks + GetVelocity();
+	PredictParams.LaunchVelocity = StartSpeed * WhereCharacterLooks + GetVelocity();
 
 	ClearSpline(SplineMeshes, KnifeSpline);
 	SplineMeshes.Reserve(PredictResult.PathData.Num());
@@ -144,6 +154,19 @@ void AThrowCharacter::ShowParticlePath(const FInputActionValue& Value)
 	KnifeSpline->SetSplinePointType(PredictResult.PathData.Num() - 1, ESplinePointType::CurveClamped);
 	EndSpline->SetWorldLocation(PredictResult.PathData.Last().Location);
 	EndSpline->SetVisibility(true);
+
+	//offset camera
+	if(!bIsAim)
+	{
+		PrevAimOfset = GetCameraBoom()->TargetArmLength;
+		PrevCameraData = GetCameraBoom()->SocketOffset;
+
+
+		GetCameraBoom()->SocketOffset = AIMData;
+		GetCameraBoom()->TargetArmLength = AimOfset;
+
+		bIsAim = true;
+	}
 }
 
 void AThrowCharacter::SpawnKnifeBack(const FInputActionValue& Value)
@@ -165,6 +188,8 @@ void AThrowCharacter::SpawnKnifeBack(const FInputActionValue& Value)
 		{
 			NS_LeakParticles->Deactivate();
 		}), 0.4f, false);
+
+	Knife->SetVisibility(true);
 }
 
 void AThrowCharacter::HandleSpawnProgress(float Value)
@@ -195,6 +220,8 @@ void AThrowCharacter::SpawnTimelineFinishedFunction()
 			//GetController()->SetActorRotation(FNewRotator);
 		}
 		SpawnTimeline->Reverse();
+
+		Knife->SetVisibility(true);
 
 		if (OnCharacterDisappearDelegate.IsBound())
 		{
@@ -229,7 +256,7 @@ void ClearSpline(TArray<USplineMeshComponent*>& SplineMeshes, USplineComponent* 
 
 void AThrowCharacter::SetUpTimers(bool bIsActive)
 {
-	if (bIsActive)
+	/*if (bIsActive)
 	{
 		GetWorldTimerManager().SetTimer(Location2SecAgoTimer, FTimerDelegate::CreateLambda([this]
 			{
@@ -264,5 +291,5 @@ void AThrowCharacter::SetUpTimers(bool bIsActive)
 		{
 			DrawDebugSphere(GetWorld(), PreviousLocation.Key, 500.f, 24, FColor::Red, false, 2.f);
 		}
-	}
+	}*/
 }

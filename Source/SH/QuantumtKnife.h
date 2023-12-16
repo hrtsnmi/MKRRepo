@@ -6,6 +6,9 @@
 #include "GameFramework/Actor.h"
 #include "QuantumtKnife.generated.h"
 
+
+DECLARE_MULTICAST_DELEGATE(FOnActorDestroySignature);
+
 UCLASS()
 class SH_API AQuantumtKnife : public AActor
 {
@@ -55,7 +58,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	//
+	// To 
+	void MakeLight();
+
 	
 
 public:	
@@ -66,11 +71,16 @@ public:
 
 	void ActivateParticle(bool bActivate = false);
 
+	virtual void BeginDestroy() override;
+
 	UFUNCTION()
 	float& AddOwnerSpeed();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ExposeOnSpawn = true), Category = "Throw|Speed")
-		float StartSpeed{ 1000.f };
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (ExposeOnSpawn = true), Category = "Throw|Light")
+	bool bShowDebugShape{ false };
 
-	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Throw|Light", meta = (AllowPrivateAccess = "true"))
+		TArray<TEnumAsByte<EObjectTypeQuery> > EnemyTraceTypes;
+
+	FOnActorDestroySignature OnActorDestroyDelegate;
 };
